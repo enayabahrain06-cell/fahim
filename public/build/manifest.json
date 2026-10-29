@@ -1,0 +1,46 @@
+{
+  "resources/css/admin.css": {
+    "file": "assets/admin-D4qVSBwe.css",
+    "src": "resources/css/admin.css",
+    "isEntry": true
+  },
+  "resources/css/invite.css": {
+    "file": "assets/invite-DziV0fBI.css",
+    "src": "resources/css/invite.css",
+    "isEntry": true
+  },
+  "resources/images/couple-default.jpg": {
+    "file": "assets/couple-default-BIChNA3i.jpg",
+    "src": "resources/images/couple-default.jpg"
+  },
+  "resources/images/envelope.jpg": {
+    "file": "assets/envelope-CRoUjO_X.jpg",
+    "src": "resources/images/envelope.jpg"
+  },
+  "resources/images/seal.png": {
+    "file": "assets/seal-CMb-cp_3.png",
+    "src": "resources/images/seal.png"
+  },
+  "resources/images/venue-default.jpg": {
+    "file": "assets/venue-default-BHwSEZ6i.jpg",
+    "src": "resources/images/venue-default.jpg"
+  },
+  "resources/js/admin.js": {
+    "file": "assets/admin-sLpMhkWZ.js",
+    "name": "admin",
+    "src": "resources/js/admin.js",
+    "isEntry": true
+  },
+  "resources/js/install.js": {
+    "file": "assets/install-BdCFvO-m.js",
+    "name": "install",
+    "src": "resources/js/install.js",
+    "isEntry": true
+  },
+  "resources/js/invite.js": {
+    "file": "assets/invite-BfdKWEkk.js",
+    "name": "invite",
+    "src": "resources/js/invite.js",
+    "isEntry": true
+  }
+}
