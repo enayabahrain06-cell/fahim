@@ -120,3 +120,35 @@ it('backs up the database and keeps the newest copies', function () {
     }
     @unlink($db);
 });
+
+it('lets a signed-in user add, edit and delete other users, but not themselves', function () {
+    $me = User::factory()->create();
+    $this->actingAs($me)->get('/admin/users')->assertOk();
+
+    $this->post('/admin/users', [
+        'name' => 'Marwa', 'email' => 'marwa@example.com',
+        'password' => 'a-long-password', 'password_confirmation' => 'a-long-password',
+    ])->assertRedirect('/admin/users');
+    $other = User::where('email', 'marwa@example.com')->sole();
+    expect(Hash::check('a-long-password', $other->password))->toBeTrue();
+
+    $this->patch("/admin/users/{$other->id}", ['name' => 'Marwa B', 'email' => 'marwa@example.com', 'password' => ''])
+        ->assertRedirect('/admin/users');
+    expect($other->fresh()->name)->toBe('Marwa B')
+        ->and(Hash::check('a-long-password', $other->fresh()->password))->toBeTrue();
+
+    $this->post('/admin/users', [
+        'name' => 'Dup', 'email' => 'marwa@example.com',
+        'password' => 'a-long-password', 'password_confirmation' => 'a-long-password',
+    ])->assertSessionHasErrors('email');
+
+    $this->delete("/admin/users/{$me->id}")->assertSessionHasErrors('users');
+    $this->delete("/admin/users/{$other->id}")->assertRedirect('/admin/users');
+    expect(User::count())->toBe(1);
+});
+
+it('keeps user management behind login', function () {
+    User::factory()->create();
+    $this->get('/admin/users')->assertRedirect();
+    $this->post('/admin/users', [])->assertRedirect();
+});

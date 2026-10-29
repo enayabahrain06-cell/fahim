@@ -41,6 +41,7 @@
       <p id="updated">Loading…</p>
       <div class="foot-links">
         <a href="{{ route('admin.export.csv') }}">Export CSV</a>
+        <a href="{{ route('admin.users') }}">Users</a>
         <form method="POST" action="{{ route('admin.logout') }}">
           @csrf
           <button type="submit" class="linkbtn">Sign out</button>

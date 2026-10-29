@@ -10,6 +10,7 @@ use App\Http\Controllers\PhotoController;
 use App\Http\Controllers\PrivateNoticeController;
 use App\Http\Controllers\RsvpController;
 use App\Http\Controllers\SetupController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Guest side
@@ -44,6 +45,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('photos/{slot}', [PhotoController::class, 'store'])->whereIn('slot', ['couple', 'venue']);
         Route::delete('photos/{slot}', [PhotoController::class, 'destroy'])->whereIn('slot', ['couple', 'venue']);
         Route::get('export/pdf', [ExportController::class, 'pdf'])->name('export.pdf');
+        Route::get('users', [UserController::class, 'index'])->name('users');
+        Route::post('users', [UserController::class, 'store'])->name('users.store');
+        Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
         Route::get('export/csv', [ExportController::class, 'csv'])->name('export.csv');
     });
 });
