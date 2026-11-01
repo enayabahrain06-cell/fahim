@@ -29,7 +29,7 @@ class IcsBuilder
             'DTSTAMP:'.$this->stamp(now()),
             'DTSTART:'.$this->stamp($start),
             'DTEND:'.$this->stamp($end),
-            'SUMMARY:'.$this->escape('Wedding of '.$couple),
+            'SUMMARY:'.$this->escape($couple.' Wedding'),
             'LOCATION:'.$this->escape(implode(', ', array_filter([$d['venue'], $d['venue_address']]))),
         ];
 
@@ -51,7 +51,7 @@ class IcsBuilder
 
         return 'https://calendar.google.com/calendar/render?'.http_build_query([
             'action' => 'TEMPLATE',
-            'text' => 'Wedding of '.$this->details->couple($d),
+            'text' => $this->details->couple($d).' Wedding',
             'dates' => $this->stamp($start).'/'.$this->stamp($start->addHours(self::DURATION_HOURS)),
             'location' => implode(', ', array_filter([$d['venue'], $d['venue_address']])),
             'details' => $d['map_link'] ?: '',

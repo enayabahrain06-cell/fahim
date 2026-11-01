@@ -5,10 +5,13 @@ return [
     'timezone' => env('APP_TIMEZONE', 'Asia/Bahrain'),
 
     // Most guests one invitation may bring, including the invitee.
-    'max_seats' => 20,
+    'max_seats' => 999,
 
     // Guests can bring any number, not limited by their seats; this only guards against a mistyped reply.
-    'max_guests' => 99,
+    'max_guests' => 999,
+
+    // The short, readable address of the shared invitation link (https://yourdomain/<slug>).
+    'share_slug' => 'join',
 
     // Photo slots on the invitation.
     'photo_slots' => ['couple', 'venue'],

@@ -26,8 +26,11 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): RedirectResponse
     {
-        if (! Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            throw ValidationException::withMessages(['email' => 'That email and password don’t match.']);
+        $login = trim($request->input('email'));
+        $field = str_contains($login, '@') ? 'email' : 'username';
+
+        if (! Auth::attempt([$field => $login, 'password' => $request->input('password')], $request->boolean('remember'))) {
+            throw ValidationException::withMessages(['email' => 'That username or email and password don’t match.']);
         }
 
         $request->session()->regenerate();

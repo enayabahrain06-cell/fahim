@@ -67,7 +67,7 @@ function countUp(node, to, suffix = '') {
 }
 
 /* ---------- screens (hash routing, so the back button works) ---------- */
-const SCREENS = ['overview', 'guests', 'add', 'invitation'];
+const SCREENS = ['overview', 'guests', 'invitation'];
 function showScreen() {
   const name = SCREENS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'overview';
   SCREENS.forEach(s => { $('screen-' + s).hidden = s !== name; });
@@ -84,21 +84,26 @@ window.addEventListener('scroll', () => appbar.classList.toggle('scrolled', wind
 new ResizeObserver(() => document.documentElement.style.setProperty('--appbar-h', appbar.offsetHeight + 'px')).observe(appbar);
 document.querySelectorAll('.stat[data-filter]').forEach(a => a.addEventListener('click', () => setFilter(a.dataset.filter)));
 
+/* ---------- latest replies on the overview ---------- */
+function renderRecent() {
+  const latest = rows.filter(r => r.replied_at).sort((a, b) => b.replied_at.localeCompare(a.replied_at)).slice(0, 5);
+  $('recent').replaceChildren(...(latest.length ? latest.map(r => {
+    const name = r.guest_names?.[0] || r.name;
+    const pill = el('span', { className: 'pill ' + (r.status === 'yes' ? 'yes' : 'no'), textContent: r.status === 'yes' ? `Coming · ${r.guests}` : 'Declined' });
+    const meta = [name !== r.name ? `Invited as ${r.name}` : '', r.phone ? '+' + r.phone : '', 'Replied ' + fmtDate(r.replied_at) + ' ' + fmtTime(new Date(r.replied_at))].filter(Boolean).join(' · ');
+    return el('li', { className: 'row' }, el('span', { className: 'nm', textContent: name }), pill, el('span', { className: 'meta', textContent: meta }));
+  }) : [el('li', { className: 'note', textContent: 'No replies yet.' })]));
+}
+
 /* ---------- stats ---------- */
 function renderStats(s) {
   countUp($('guestsComing'), s.guests_coming);
   countUp($('yesCount'), s.accepted);
   countUp($('noCount'), s.declined);
-  countUp($('pendCount'), s.waiting);
   countUp($('ringPct'), s.acceptance_pct, '%');
   $('ringArc').setAttribute('stroke-dasharray', (s.acceptance_pct / 100 * 314.16).toFixed(1) + ' 314.16');
   $('ringArc').style.opacity = s.acceptance_pct ? 1 : 0;
-  $('heroNote').textContent = s.invitations ? `${s.answered} of ${s.invitations} invitations answered` : 'No guests added yet';
-  $('capVal').textContent = `${s.guests_coming} / ${s.total_seats}`;
-  $('capBar').style.width = s.seats_pct + '%';
-  $('capNote').textContent = s.total_seats
-    ? `${s.seats_pct}% of the ${s.total_seats} invited seats are confirmed.`
-    : 'Add your guests to track who is coming.';
+  $('heroNote').textContent = s.answered ? `${s.accepted} accepted · ${s.declined} declined` : 'No replies yet';
 }
 
 /* ---------- new-reply badge on the Guests tab ---------- */
@@ -118,23 +123,57 @@ function updateBadge() {
 }
 
 /* ---------- guest list ---------- */
-const inviteText = r => `Dear ${r.name},\nWith joy, we invite you to the wedding of ${couple()}.\nPlease open your personal invitation and confirm your attendance:\n${r.link}`;
-const WA_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .1-1.3c0-.1-.2-.2-.4-.3Z"/></svg>';
 
 function setFilter(f) {
   filter = f;
+  page = 1;
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
   renderList();
 }
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setFilter(b.dataset.f)));
-$('search').addEventListener('input', () => renderList());
+$('search').addEventListener('input', () => { page = 1; renderList(); });
+
+// With 100+ guests the list is split into pages of 20.
+const PAGE_AT = 100, PER_PAGE = 20;
+let page = 1;
+
+function renderPager(total, pages) {
+  const old = $('pager');
+  if (old) old.remove();
+  if (pages < 2) return;
+  const nav = el('nav', { id: 'pager', className: 'pager' });
+  nav.setAttribute('aria-label', 'Guest list pages');
+  const go = (label, n, text, current) => {
+    const b = el('button', { type: 'button', textContent: text });
+    b.setAttribute('aria-label', label);
+    if (current) b.setAttribute('aria-current', 'page');
+    if (n < 1 || n > pages || current) b.disabled = true;
+    b.addEventListener('click', () => { page = n; renderList(); $('list').scrollIntoView({ block: 'start' }); });
+    return b;
+  };
+  nav.append(go('Previous page', page - 1, '‹'));
+  const nums = [...new Set([1, page - 1, page, page + 1, pages].filter(n => n >= 1 && n <= pages))].sort((a, b) => a - b);
+  let last = 0;
+  nums.forEach(n => {
+    if (n - last > 1) nav.append(el('span', { className: 'gap', textContent: '…' }));
+    nav.append(go(`Page ${n}`, n, String(n), n === page));
+    last = n;
+  });
+  nav.append(go('Next page', page + 1, '›'));
+  $('list').after(nav);
+}
 
 function renderList() {
   const q = $('search').value.trim().toLowerCase();
-  const shown = rows
+  const matches = rows
     .filter(r => filter === 'all' || r.status === filter)
     .filter(r => !q || [r.name, ...(r.guest_names || []), r.phone || ''].join(' ').toLowerCase().includes(q))
     .sort((a, b) => (b.replied_at || '').localeCompare(a.replied_at || '') || b.id - a.id);
+  const paged = rows.length >= PAGE_AT;
+  const pages = paged ? Math.max(1, Math.ceil(matches.length / PER_PAGE)) : 1;
+  if (page > pages) page = pages;
+  const shown = paged ? matches.slice((page - 1) * PER_PAGE, page * PER_PAGE) : matches;
+  renderPager(matches.length, pages);
 
   const list = $('list');
   list.replaceChildren();
@@ -148,29 +187,24 @@ function renderList() {
     const li = el('li', { className: 'row' });
     if (!seen.has(key)) { seen.add(key); li.classList.add('new'); li.style.animationDelay = Math.min(fresh++, 12) * 45 + 'ms'; }
 
-    const pill = el('span', {
-      className: 'pill ' + (r.status === 'yes' ? 'yes' : r.status === 'no' ? 'no' : 'wait'),
-      textContent: r.status === 'yes' ? `Coming · ${r.guests}` : r.status === 'no' ? 'Declined' : 'Waiting',
+    const pill = r.status === 'pending' ? null : el('span', {
+      className: 'pill ' + (r.status === 'yes' ? 'yes' : 'no'),
+      textContent: r.status === 'yes' ? `Coming · ${r.guests}` : 'Declined',
     });
     const meta = [
+      r.status !== 'pending' && r.guest_names?.[0] && r.guest_names[0] !== r.name ? `Invited as ${r.name}` : '',
       `${r.seats} ${r.seats === 1 ? 'seat' : 'seats'}`,
-      r.status === 'yes' && r.guest_names?.length ? r.guest_names.join(', ') : '',
       r.replied_at ? 'Replied ' + fmtDate(r.replied_at) : '',
       r.open_count ? `Opened ${r.open_count}×` : 'Not opened yet',
     ].filter(Boolean).join(' · ');
 
-    const wa = el('a', { className: 'wa', target: '_blank', rel: 'noopener', href: `https://wa.me/${r.phone || ''}?text=${encodeURIComponent(inviteText(r))}` });
-    wa.innerHTML = WA_ICON;
-    wa.append('Send on WhatsApp');
-    const copy = el('button', { type: 'button', textContent: 'Copy link' });
-    copy.addEventListener('click', () => copyLink(r, copy));
     const more = el('button', { type: 'button', className: 'more', textContent: '•••', ariaLabel: `More for ${r.name}` });
     more.setAttribute('aria-label', `More actions for ${r.name}`);
     more.addEventListener('click', () => actionsSheet(r));
 
-    li.append(el('span', { className: 'nm', textContent: r.name }), pill, el('span', { className: 'meta', textContent: meta }));
+    li.append(el('span', { className: 'nm', textContent: (r.status !== 'pending' && r.guest_names?.[0]) || r.name }), ...(pill ? [pill] : []), el('span', { className: 'meta', textContent: meta }));
     if (r.notes) li.append(el('span', { className: 'private-note', textContent: r.notes }));
-    li.append(el('div', { className: 'acts' }, wa, copy, more));
+    li.append(el('div', { className: 'acts' }, more));
     list.append(li);
   });
 }
@@ -218,7 +252,7 @@ function actionsSheet(r) {
     btn('New link', () => act(r, 'regenerate', 'Make a new link?', `The link you already sent to ${r.name} will stop working. Send them the new one.`, 'Make new link')),
     btn('Remove', () => act(r, 'destroy', 'Remove guest?', `Remove ${r.name}? Their link will stop working.`, 'Remove', true), 'secondary danger'),
   ];
-  const sub = r.status === 'yes' ? `Coming with ${r.guests} of ${r.seats}` : r.status === 'no' ? 'Declined' : `Waiting · ${r.seats} ${r.seats === 1 ? 'seat' : 'seats'}`;
+  const sub = r.status === 'yes' ? `Coming with ${r.guests} of ${r.seats}` : r.status === 'no' ? 'Declined' : `${r.seats} ${r.seats === 1 ? 'seat' : 'seats'}`;
   openSheet(r.name, el('p', { className: 'sheet-sub', textContent: sub }), el('div', { className: 'sheet-actions' }, ...actions));
 }
 
@@ -267,6 +301,7 @@ async function load() {
     rows = list.invitees;
     renderStats(s.stats);
     renderList();
+    renderRecent();
     updateBadge();
     $('updated').textContent = 'Updated ' + fmtTime(new Date());
   } catch (e) {
@@ -280,57 +315,31 @@ $('refresh').addEventListener('click', load);
 setInterval(() => { if (document.visibilityState === 'visible') load(); }, POLL_MS);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load(); });
 
-/* ---------- adding guests ---------- */
-$('addForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const f = e.target, btn = f.querySelector('button');
-  btn.disabled = true;
+/* ---------- one link for everyone ---------- */
+$('sharedWa')?.addEventListener('click', () => {
+  const text = `${details.share_message_text}\n${$('sharedUrl').value}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+});
+$('sharedCopy')?.addEventListener('click', async e => {
+  const btn = e.currentTarget, url = $('sharedUrl').value;
   try {
-    const r = await api('POST', '/admin/invitees', { json: { name: f.name.value.trim(), seats: Number(f.seats.value) || 1, phone: f.phone.value } });
-    $('addNote').textContent = `Added ${r.invitee.name}. Send them their link from the guest list.`;
-    toast(`Added ${r.invitee.name}`);
-    f.reset(); f.seats.value = 1; f.name.focus();
-    await load();
+    await navigator.clipboard.writeText(url);
+    btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy link'; }, 1800);
+    toast('Link copied');
   } catch (err) {
-    $('addNote').textContent = 'Couldn’t add: ' + err.message;
-    toast(err.message, true);
+    window.prompt('Copy this link:', url);
   }
-  btn.disabled = false;
 });
-
-function bulkReport(r) {
-  const box = $('bulkReport');
-  box.replaceChildren(el('p', { textContent: `Added ${r.added} ${r.added === 1 ? 'guest' : 'guests'}.` }));
-  if (r.skipped.length) {
-    box.append(el('p', { textContent: `Skipped ${r.skipped.length} ${r.skipped.length === 1 ? 'line' : 'lines'}:` }),
-      el('ul', {}, ...r.skipped.map(s => el('li', { textContent: `Line ${s.line} (“${s.text}”): ${s.reason}` }))));
-  }
-  box.hidden = false;
-  toast(`Added ${r.added} ${r.added === 1 ? 'guest' : 'guests'}`, !r.added);
-}
-async function bulkSend(opts, btn) {
-  btn?.classList.add('busy');
+$('sharedCopyMsg')?.addEventListener('click', async e => {
+  const btn = e.currentTarget, text = `${details.share_message_text}\n${$('sharedUrl').value}`;
   try {
-    const r = await api('POST', '/admin/invitees/bulk', opts);
-    bulkReport(r);
-    if (r.added && !r.skipped.length) $('bulkText').value = '';
-    await load();
-  } catch (e) { toast(e.message, true); }
-  btn?.classList.remove('busy');
-}
-$('bulkAdd').addEventListener('click', e => {
-  const text = $('bulkText').value.trim();
-  if (!text) { toast('Write at least one guest, one per line.', true); return; }
-  bulkSend({ json: { text } }, e.currentTarget);
+    await navigator.clipboard.writeText(text);
+    btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy message'; }, 1800);
+    toast('Message copied');
+  } catch (err) {
+    window.prompt('Copy this message:', text);
+  }
 });
-$('bulkFile').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const form = new FormData(); form.append('file', file);
-  bulkSend({ form }, e.target.closest('label'));
-  e.target.value = '';
-});
-
 /* ---------- photos ---------- */
 /** Resizes on the phone first so uploads are quick; the server checks and re-encodes again. */
 async function shrink(file, max = 1600) {
@@ -343,36 +352,128 @@ async function shrink(file, max = 1600) {
     return blob ? new File([blob], 'photo.jpg', { type: 'image/jpeg' }) : file;
   } catch (e) { return file; }
 }
-function showPhotos(photos) {
-  document.querySelectorAll('.slot').forEach(slot => {
-    const url = photos[slot.dataset.slot], thumb = slot.querySelector('.thumb');
-    thumb.replaceChildren(url ? el('img', { src: url, alt: slot.querySelector('.slot-name').textContent }) : el('span', { textContent: 'Built-in artwork' }));
-    slot.querySelector('.rm').hidden = !url;
-  });
+const pending = {}; // slot -> { file, url } chosen but not saved yet
+let hiddenSlots = {};
+function refreshSlot(slot, saved) {
+  const name = slot.dataset.slot, p = pending[name], url = p ? p.url : (saved || slot.dataset.default);
+  slot.querySelector('.thumb').replaceChildren(el('img', { src: url, alt: slot.querySelector('.slot-name').textContent }));
+  slot.querySelector('.dl').href = saved || slot.dataset.default;
+  slot.querySelector('.rm').disabled = !p && !saved;
+  slot.dataset.saved = saved || '';
+  const off = !!hiddenSlots[name] && !p;
+  slot.classList.toggle('is-hidden', off);
+  slot.querySelector('.hd').textContent = off ? 'Show on invitation' : 'Hide from invitation';
+  slot.querySelector('.hd').disabled = !!p;
+  $('photoSave').disabled = !Object.keys(pending).length;
+}
+function showPhotos(photos, hidden) {
+  if (hidden) hiddenSlots = hidden;
+  document.querySelectorAll('.slot').forEach(slot => refreshSlot(slot, photos[slot.dataset.slot]));
+}
+function dropPending(name) {
+  if (pending[name]) { URL.revokeObjectURL(pending[name].url); delete pending[name]; }
 }
 document.querySelectorAll('.slot').forEach(slot => {
-  const name = slot.dataset.slot, input = slot.querySelector('input[type=file]'), label = slot.querySelector('.upl');
-  input.addEventListener('change', async () => {
+  const name = slot.dataset.slot, input = slot.querySelector('input[type=file]');
+  hiddenSlots[name] = slot.classList.contains('is-hidden');
+  refreshSlot(slot, slot.querySelector('.rm').disabled ? '' : slot.querySelector('.dl').getAttribute('href'));
+  input.addEventListener('change', () => {
     const file = input.files[0];
     if (!file) return;
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast('Please choose a JPG, PNG or WebP image.', true); input.value = ''; return; }
-    label.classList.add('busy'); $('photoNote').textContent = 'Uploading…';
+    input.value = '';
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) { toast('Please choose a JPG, PNG or WebP image.', true); return; }
+    dropPending(name);
+    pending[name] = { file, url: URL.createObjectURL(file) };
+    refreshSlot(slot, slot.dataset.saved);
+    $('photoNote').textContent = 'Tap Save photos to put your choice on the invitation.';
+  });
+  slot.querySelector('.hd').addEventListener('click', async () => {
+    const hide = !hiddenSlots[name];
     try {
-      const form = new FormData(); form.append('photo', await shrink(file));
-      const r = await api('POST', `/admin/photos/${name}`, { form });
-      showPhotos(r.photos);
-      $('photoNote').textContent = 'Saved. The invitation now shows your photo.';
-      toast('Photo saved');
-    } catch (e) { $('photoNote').textContent = 'Couldn’t upload: ' + e.message; toast(e.message, true); }
-    label.classList.remove('busy'); input.value = '';
+      const r = await api('PUT', `/admin/photos/${name}/hidden`, { json: { hidden: hide } });
+      showPhotos(r.photos, r.hidden);
+      toast(hide ? 'Photo hidden from the invitation' : 'Photo shown on the invitation');
+      $('photoNote').textContent = hide ? 'Hidden. The invitation shows no picture there.' : 'Shown again on the invitation.';
+    } catch (e) { toast(e.message, true); }
   });
   slot.querySelector('.rm').addEventListener('click', async () => {
+    if (pending[name]) { dropPending(name); refreshSlot(slot, slot.dataset.saved); $('photoNote').textContent = 'Choice discarded.'; return; }
     if (!await confirmSheet('Remove photo?', 'The invitation will show its built-in artwork again.', 'Remove', true)) return;
     try {
       const r = await api('DELETE', `/admin/photos/${name}`);
-      showPhotos(r.photos); toast('Photo removed');
+      showPhotos(r.photos, r.hidden); toast('Photo removed');
+      $('photoNote').textContent = 'Photo removed. The invitation shows its built-in artwork.';
     } catch (e) { toast(e.message, true); }
   });
+});
+$('photoSave').addEventListener('click', async () => {
+  const btn = $('photoSave'), names = Object.keys(pending);
+  if (!names.length) return;
+  btn.disabled = true; btn.textContent = 'Saving…'; $('photoNote').textContent = 'Uploading…';
+  try {
+    let photos, hiddenNow;
+    for (const name of names) {
+      const form = new FormData(); form.append('photo', await shrink(pending[name].file));
+      const r = await api('POST', `/admin/photos/${name}`, { form });
+      photos = r.photos; hiddenNow = r.hidden;
+      dropPending(name);
+    }
+    showPhotos(photos, hiddenNow);
+    $('photoNote').textContent = 'Saved. The invitation now shows your photos.';
+    toast('Photos saved');
+  } catch (e) { $('photoNote').textContent = 'Couldn’t save: ' + e.message; toast(e.message, true); }
+  btn.textContent = 'Save photos'; btn.disabled = !Object.keys(pending).length;
+});
+
+/* ---------- music ---------- */
+function showMusic(m) {
+  $('musicName').textContent = m ? m.name : 'No music yet';
+  const a = $('musicPreview');
+  if (m) { a.src = m.url; a.hidden = false; } else { a.removeAttribute('src'); a.hidden = true; }
+  $('musicRm').hidden = !m?.uploaded;
+  $('cropBox').hidden = !m;
+  $('cropStart').value = m?.start ? fmtClock(m.start) : '';
+  $('cropEnd').value = m?.end ? fmtClock(m.end) : '';
+}
+const fmtClock = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+/** "1:05" or "65" to seconds; empty is null, anything else NaN. */
+function parseClock(v) {
+  v = v.trim();
+  if (!v) return null;
+  const m = v.match(/^(?:(\d+):)?(\d+(?:\.\d+)?)$/);
+  return m ? (Number(m[1] || 0) * 60 + Number(m[2])) : NaN;
+}
+$('cropSetStart')?.addEventListener('click', () => { $('cropStart').value = fmtClock($('musicPreview').currentTime); });
+$('cropSetEnd')?.addEventListener('click', () => { $('cropEnd').value = fmtClock($('musicPreview').currentTime); });
+async function saveCrop(start, end, okMsg) {
+  try {
+    const r = await api('PUT', '/admin/music/crop', { json: { start, end } });
+    showMusic(r.music);
+    $('musicNote').textContent = okMsg; toast(okMsg);
+  } catch (err) { $('musicNote').textContent = err.message; toast(err.message, true); }
+}
+$('cropSave')?.addEventListener('click', () => {
+  const start = parseClock($('cropStart').value), end = parseClock($('cropEnd').value);
+  if (Number.isNaN(start) || Number.isNaN(end)) { toast('Write the time like 1:05 or 65.', true); return; }
+  saveCrop(start ?? 0, end, 'Saved. Guests hear only that part.');
+});
+$('cropReset')?.addEventListener('click', () => saveCrop(0, null, 'The whole song plays again.'));
+$('musicFile')?.addEventListener('change', async e => {
+  const input = e.target, file = input.files[0];
+  if (!file) return;
+  $('musicUpl').classList.add('busy'); $('musicNote').textContent = 'Uploading…';
+  try {
+    const form = new FormData(); form.append('music', file);
+    const r = await api('POST', '/admin/music', { form });
+    showMusic(r.music);
+    $('musicNote').textContent = 'Saved. The invitation now plays your song.';
+    toast('Music saved');
+  } catch (err) { $('musicNote').textContent = 'Couldn’t upload: ' + err.message; toast(err.message, true); }
+  $('musicUpl').classList.remove('busy'); input.value = '';
+});
+$('musicRm')?.addEventListener('click', async () => {
+  if (!await confirmSheet('Remove your song?', 'The invitation goes back to the built-in music, if there is one.', 'Remove', true)) return;
+  try { const r = await api('DELETE', '/admin/music'); showMusic(r.music); toast('Music removed'); } catch (err) { toast(err.message, true); }
 });
 
 /* ---------- invitation details ---------- */
@@ -395,9 +496,9 @@ function syncMomentButton() { $('addMoment').hidden = $('scheduleRows').children
 syncMomentButton();
 $('addMoment').addEventListener('click', () => { addMoment(); $('scheduleRows').lastElementChild.querySelector('input').focus(); });
 
-$('detailsForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const form = e.target, btn = $('saveDetails');
+/** Saves the whole details form (plus any overrides) and refreshes everything that shows the details. */
+async function saveDetails(overrides = {}, note = $('detailsNote')) {
+  const form = $('detailsForm'), btn = $('saveDetails');
   const data = {};
   for (const f of form.elements) {
     if (!f.name) continue;
@@ -408,21 +509,46 @@ $('detailsForm').addEventListener('submit', async e => {
     const [time, title] = r.querySelectorAll('input');
     return { time: time.value.trim(), title: title.value.trim() };
   }).filter(m => m.time || m.title);
-  btn.disabled = true; $('detailsNote').textContent = 'Saving…';
+  Object.assign(data, overrides);
+  btn.disabled = true; note.textContent = 'Saving…';
   try {
     const r = await api('PUT', '/admin/details', { json: data });
     details = r.details;
+    if ('share_message' in overrides) form.elements.share_message.value = overrides.share_message;
     $('coupleTitle').textContent = couple();
     document.title = couple() + ' · Dashboard';
-    $('detailsNote').textContent = 'Saved. The invitation is updated.';
+    note.textContent = 'Saved. The invitation is updated.';
     toast('Details saved');
     renderList(); // WhatsApp messages use the couple's names
+    renderWaMessage();
+    btn.disabled = false;
+    return true;
   } catch (err) {
-    $('detailsNote').textContent = 'Couldn’t save: ' + err.message;
+    note.textContent = 'Couldn’t save: ' + err.message;
     Object.keys(err.data?.errors || {}).forEach(k => form.elements[k.split('.')[0]]?.classList?.add('invalid'));
     toast(err.message, true);
+    btn.disabled = false;
+    return false;
   }
-  btn.disabled = false;
+}
+$('detailsForm').addEventListener('submit', e => { e.preventDefault(); saveDetails(); });
+
+/* ---------- edit the WhatsApp message in place ---------- */
+function renderWaMessage() {
+  const p = $('waMsg'); if (!p) return;
+  const u = el('u', { textContent: $('sharedUrl').value });
+  p.replaceChildren();
+  details.share_message_text.split('\n').forEach((line, i) => { if (i) p.append(el('br')); p.append(line); });
+  p.append(el('br'), u);
+}
+$('waEdit')?.addEventListener('click', () => {
+  $('waEditor').hidden = false; $('waEdit').hidden = true;
+  $('waText').value = details.share_message || details.share_message_text; $('waText').focus();
+});
+$('waCancel')?.addEventListener('click', () => { $('waEditor').hidden = true; $('waEdit').hidden = false; });
+$('waSave')?.addEventListener('click', async () => {
+  const text = $('waText').value.trim();
+  if (await saveDetails({ share_message: text }, $('waNote'))) { $('waEditor').hidden = true; $('waEdit').hidden = false; }
 });
 
 /* ---------- start ---------- */

@@ -61,5 +61,23 @@ it('shows the uploaded venue photo and the map in the venue card', function () {
     $this->get("/i/{$inv->token}")
         ->assertSee('invitation/venue.jpg?v=', false)
         ->assertSee('<iframe src="https://www.google.com/maps?q=', false)
-        ->assertSee('https://calendar.google.com/calendar/render?action=TEMPLATE', false);
+        ->assertDontSee('calendar.google.com', false)->assertDontSee('Save date');
+});
+
+it('hides and shows a slot\'s picture on the invitation', function () {
+    $inv = invitee();
+    $couple = fn () => $this->get("/i/{$inv->token}");
+
+    $couple()->assertSee('couple-art', false);
+    $this->putJson('/admin/photos/couple/hidden', ['hidden' => true])->assertOk()->assertJsonPath('hidden.couple', true);
+    $couple()->assertDontSee('couple-art', false);
+
+    $this->putJson('/admin/photos/venue/hidden', ['hidden' => true])->assertOk();
+    $couple()->assertSee('venue-hero no-photo', false)->assertDontSee('venue-default', false);
+
+    $this->putJson('/admin/photos/couple/hidden', ['hidden' => false])->assertOk()->assertJsonPath('hidden.couple', false);
+    $couple()->assertSee('couple-art', false);
+
+    $this->putJson('/admin/photos/venue/hidden', ['hidden' => true]);
+    $this->post('/admin/photos/venue', ['photo' => UploadedFile::fake()->image('h.jpg', 400, 300)], ['Accept' => 'application/json'])->assertOk()->assertJsonPath('hidden.venue', false);
 });

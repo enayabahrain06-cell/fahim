@@ -31,6 +31,10 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(10)->by('rsvp|'.$r->route('token')),
             Limit::perMinute(20)->by('rsvp-ip|'.$r->ip()),
         ]);
+        RateLimiter::for('rsvp-shared', fn (Request $r) => [
+            Limit::perMinute(120)->by('join|'.$r->route('token')),
+            Limit::perMinute(10)->by('join-ip|'.$r->ip()),
+        ]);
         RateLimiter::for('setup', fn (Request $r) => Limit::perMinute(5)->by($r->ip()));
         RateLimiter::for('login', fn (Request $r) => Limit::perMinute(5)->by(Str::lower((string) $r->input('email')).'|'.$r->ip()));
     }

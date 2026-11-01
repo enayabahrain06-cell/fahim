@@ -49,7 +49,7 @@ it('rejects replies that break the rules with 422', function (array $payload) {
     expect($inv->fresh()->status)->toBe('pending')
         ->and(RsvpLog::count())->toBe(0);
 })->with([
-    'a mistyped number of guests' => [['attending' => true, 'count' => 100, 'name' => 'Ahmed']],
+    'a mistyped number of guests' => [['attending' => true, 'count' => 1000, 'name' => 'Ahmed']],
     'zero guests' => [['attending' => true, 'count' => 0, 'name' => 'Ahmed']],
     'no number of guests' => [['attending' => true, 'name' => 'Ahmed']],
     'no name' => [['attending' => true, 'count' => 1]],
@@ -114,7 +114,7 @@ it('lets the couple preview the invitation without a token or counting an open',
     $config = json_decode($m[1], true);
     expect($config['preview'])->toBeTrue()
         ->and($config['invitee'])->toBeNull()
-        ->and($config['rsvpUrl'])->toBeNull()
+        ->and($config['rsvpUrl'])->toBe(route('admin.preview.rsvp'))
         ->and($inv->fresh()->open_count)->toBe(0);
 });
 

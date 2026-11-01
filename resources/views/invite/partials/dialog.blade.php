@@ -1,11 +1,6 @@
 <dialog id="rsvp" aria-labelledby="rsvpTitle">
   <button class="x" id="closeRsvp" type="button" aria-label="Close">×</button>
   <h3 id="rsvpTitle">Confirm your attendance</h3>
-  @if ($d['rsvp_by'])
-  <p class="sub">Kindly reply before <b class="sub-date">{{ $d['rsvp_by'] }}</b></p>
-  @else
-  <p class="sub">We would love to know if you can join us</p>
-  @endif
 
   <form id="rsvpForm" novalidate>
     <fieldset class="radios">

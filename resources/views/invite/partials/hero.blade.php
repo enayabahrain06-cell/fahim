@@ -5,11 +5,12 @@
   <div class="sprig r" id="sprigR"></div>
   <div class="hero-in">
     <h1 class="sr-only">{{ $d['groom'] }} &amp; {{ $d['bride'] }}</h1>
-    <p class="basmala" lang="ar" dir="rtl">بسم الله الرحمن الرحيم</p>
+    <p class="basmala" lang="ar" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
     <p class="wd">Joyfully invite you<br>to their wedding</p>
     @if ($d['intro'])<p class="lead">{{ $d['intro'] }}</p>@endif
     @if ($d['join_line'])<p class="warm">{{ $d['join_line'] }}</p>@endif
 
+    @unless ($hiddenPhotos['couple'])
     <div class="couple-art">
       @if ($photos['couple'])
         <img class="uploaded" src="{{ $photos['couple'] }}" alt="The bride and groom" width="600" height="600">
@@ -17,6 +18,7 @@
         <img src="{{ Vite::asset('resources/images/couple-default.jpg') }}" alt="Illustration of the bride and groom inside a wreath of leaves and white flowers" width="760" height="716">
       @endif
     </div>
+    @endunless
 
     <div class="person">
       <p class="couple">{{ $d['groom'] }}</p>
