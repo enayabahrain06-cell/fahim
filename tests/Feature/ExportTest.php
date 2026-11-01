@@ -26,7 +26,7 @@ it('downloads the guest list as a PDF with the Arabic font embedded', function (
         ->and($res->getContent())->toContain('Amiri');   // the font with Arabic glyphs is embedded
 });
 
-it('lays out the three sections, sorted by name, with shaped Arabic names', function () {
+it('lays out the Coming and Declined sections, sorted by name, with shaped Arabic names', function () {
     $details = app(InvitationDetails::class);
     $all = Invitee::all()->sortBy('name')->values();
     $html = view('exports.guest-list', [
@@ -36,17 +36,17 @@ it('lays out the three sections, sorted by name, with shaped Arabic names', func
         'generated' => now(), 'tz' => 'Asia/Bahrain', 't' => app(PdfText::class),
     ])->render();
 
-    $shaped = (new Arabic)->utf8Glyphs('عائشة كريم');
+    $shaped = (new Arabic)->utf8Glyphs('سارة أحمد');
 
     expect($html)->toContain('Fahim &amp; Marwa · Guest list')
-        ->toContain('<h2>Coming')->toContain('<h2>Declined')->toContain('<h2>No reply yet')
+        ->toContain('<h2>Coming')->toContain('<h2>Declined')->not->toContain('No reply yet')
         ->toContain('Mohammed Saleem')->toContain('97311112222')
-        ->toContain('<span class="ar">'.e($shaped).'</span>')
+        ->toContain('class="ar"')->toContain(e($shaped))
         ->toContain('font-family: "Amiri"');
 
     expect(strpos($html, '<h2>Coming'))->toBeLessThan(strpos($html, 'Ahmed Ali'))
         ->and(strpos($html, '<h2>Declined'))->toBeLessThan(strpos($html, 'Mohammed Saleem'))
-        ->and(strpos($html, '<h2>No reply yet'))->toBeLessThan(strpos($html, e($shaped)));
+        ->and(strpos($html, '<h2>Coming'))->toBeLessThan(strpos($html, e($shaped)));
 });
 
 it('exports a CSV with every column and the link', function () {

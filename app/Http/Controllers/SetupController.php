@@ -19,7 +19,7 @@ class SetupController extends Controller
     {
         $user = User::create($request->validated());
 
-        Auth::login($user);
+        Auth::login($user, true);
         $request->session()->regenerate();
 
         return redirect()->route('admin.dashboard');

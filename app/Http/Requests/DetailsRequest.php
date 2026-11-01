@@ -28,6 +28,8 @@ class DetailsRequest extends FormRequest
             'rsvp_by' => ['nullable', 'string', 'max:60'],
             'intro' => ['nullable', 'string', 'max:400'],
             'join_line' => ['nullable', 'string', 'max:120'],
+            'verse' => ['nullable', 'string', 'max:300'],
+            'welcome' => ['nullable', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:120'],
             'share_title' => ['nullable', 'string', 'max:80'],
             'share_description' => ['nullable', 'string', 'max:200'],
@@ -47,6 +49,7 @@ class DetailsRequest extends FormRequest
             'map_link' => 'Google Maps link',
             'rsvp_by' => 'reply by',
             'intro' => 'invitation text',
+            'verse' => 'verse',
             'schedule' => 'schedule of events',
         ];
     }

@@ -1,11 +1,11 @@
 {
   "resources/css/admin.css": {
-    "file": "assets/admin-4o5jvAQE.css",
+    "file": "assets/admin-CwSSkNXc.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
   "resources/css/invite.css": {
-    "file": "assets/invite-BzrvBBBF.css",
+    "file": "assets/invite-DFm4Jwbe.css",
     "src": "resources/css/invite.css",
     "isEntry": true
   },
@@ -22,7 +22,7 @@
     "src": "resources/images/envelope-ribbon.png"
   },
   "resources/images/envelope.jpg": {
-    "file": "assets/envelope-C_CUGXdP.jpg",
+    "file": "assets/envelope-C3svu4rK.jpg",
     "src": "resources/images/envelope.jpg"
   },
   "resources/images/seal-rsvp-legacy.png": {
@@ -34,7 +34,7 @@
     "src": "resources/images/seal-rsvp.png"
   },
   "resources/images/seal.png": {
-    "file": "assets/seal-CMb-cp_3.png",
+    "file": "assets/seal-pBQrjWsm.png",
     "src": "resources/images/seal.png"
   },
   "resources/images/venue-default.jpg": {
@@ -42,7 +42,7 @@
     "src": "resources/images/venue-default.jpg"
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-L2q8awvU.js",
+    "file": "assets/admin-Dt9cz5pe.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true
@@ -54,7 +54,7 @@
     "isEntry": true
   },
   "resources/js/invite.js": {
-    "file": "assets/invite-DWJ6eo0_.js",
+    "file": "assets/invite-DYa9IOzn.js",
     "name": "invite",
     "src": "resources/js/invite.js",
     "isEntry": true

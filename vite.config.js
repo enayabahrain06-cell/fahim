@@ -14,4 +14,6 @@ export default defineConfig({
             refresh: true,
         }),
     ],
+    // Keep the old files while a build runs: emptying the folder first made pages fail with a 500 ("Vite manifest not found").
+    build: { emptyOutDir: false },
 });

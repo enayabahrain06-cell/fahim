@@ -24,12 +24,6 @@ class InvitationController extends Controller
             return response()->view('invite.private', [], 404);
         }
 
-        // Record the first open, count every open, without touching updated_at.
-        Invitee::whereKey($invitee->id)->update([
-            'open_count' => $invitee->open_count + 1,
-            'opened_at' => $invitee->opened_at ?? now(),
-        ]);
-
         return $this->render($invitee);
     }
 

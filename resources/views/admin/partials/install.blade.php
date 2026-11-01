@@ -1,6 +1,6 @@
 {{-- Install the dashboard as a phone app. resources/js/install.js shows the right version for the device and hides it once installed. --}}
 <section class="install" id="install" hidden aria-labelledby="installTitle">
-  <img src="/icons/icon-192.png" alt="" width="44" height="44">
+  <img src="/icons/app-192.png" alt="" width="44" height="44">
   <div class="install-text">
     <p class="install-title" id="installTitle">Get the app</p>
     <p class="install-sub" id="installSub">Add the dashboard to your home screen and open it like an app.</p>

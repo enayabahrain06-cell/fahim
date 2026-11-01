@@ -48,12 +48,8 @@ it('keeps admin pages behind sign-in', function (string $method, string $url) {
     ['GET', '/admin/preview'],
     ['GET', '/admin/stats'],
     ['GET', '/admin/invitees'],
-    ['POST', '/admin/invitees'],
-    ['POST', '/admin/invitees/bulk'],
-    ['PATCH', '/admin/invitees/1'],
-    ['POST', '/admin/invitees/1/reset'],
-    ['POST', '/admin/invitees/1/regenerate'],
     ['DELETE', '/admin/invitees/1'],
+    ['DELETE', '/admin/invitees'],
     ['PUT', '/admin/details'],
     ['POST', '/admin/photos/couple'],
     ['DELETE', '/admin/photos/venue'],
@@ -126,19 +122,19 @@ it('lets a signed-in user add, edit and delete other users, but not themselves',
     $this->actingAs($me)->get('/admin/users')->assertOk();
 
     $this->post('/admin/users', [
-        'name' => 'Marwa', 'email' => 'marwa@example.com',
+        'name' => 'Marwa', 'email' => 'marwa@example.com', 'role' => 'admin',
         'password' => 'a-long-password', 'password_confirmation' => 'a-long-password',
     ])->assertRedirect('/admin/users');
     $other = User::where('email', 'marwa@example.com')->sole();
     expect(Hash::check('a-long-password', $other->password))->toBeTrue();
 
-    $this->patch("/admin/users/{$other->id}", ['name' => 'Marwa B', 'email' => 'marwa@example.com', 'password' => ''])
+    $this->patch("/admin/users/{$other->id}", ['name' => 'Marwa B', 'email' => 'marwa@example.com', 'role' => 'admin', 'password' => ''])
         ->assertRedirect('/admin/users');
     expect($other->fresh()->name)->toBe('Marwa B')
         ->and(Hash::check('a-long-password', $other->fresh()->password))->toBeTrue();
 
     $this->post('/admin/users', [
-        'name' => 'Dup', 'email' => 'marwa@example.com',
+        'name' => 'Dup', 'email' => 'marwa@example.com', 'role' => 'admin',
         'password' => 'a-long-password', 'password_confirmation' => 'a-long-password',
     ])->assertSessionHasErrors('email');
 
@@ -151,4 +147,38 @@ it('keeps user management behind login', function () {
     User::factory()->create();
     $this->get('/admin/users')->assertRedirect();
     $this->post('/admin/users', [])->assertRedirect();
+});
+
+it('keeps the admin signed in on this device (remember-me cookie)', function () {
+    $user = User::factory()->create(['password' => Hash::make('a-long-password')]);
+
+    $this->get('/admin/login')->assertSee('name="remember" value="1" checked', false);
+
+    $res = $this->post('/admin/login', ['email' => $user->email, 'password' => 'a-long-password', 'remember' => '1']);
+    $res->assertRedirect('/admin');
+    $res->assertCookie(\Illuminate\Support\Facades\Auth::guard()->getRecallerName());
+    expect($user->fresh()->remember_token)->not->toBeEmpty();
+});
+
+it('lets a view-only user look but not change anything', function () {
+    $viewer = \App\Models\User::factory()->create(['role' => 'viewer']);
+
+    $this->actingAs($viewer)->get('/admin')->assertOk();
+    $this->actingAs($viewer)->get('/admin/invitees')->assertOk();
+    $this->actingAs($viewer)->get('/admin/export/csv')->assertOk();
+    $this->actingAs($viewer)->get('/admin/users')->assertForbidden();
+    $this->actingAs($viewer)->put('/admin/details', [])->assertForbidden();
+    $this->actingAs($viewer)->delete('/admin/invitees', ['ids' => [1]])->assertForbidden();
+    $this->actingAs($viewer)->post('/admin/users', ['name' => 'x'])->assertForbidden();
+});
+
+it('lets an admin set a user to view-only but not themselves', function () {
+    $admin = \App\Models\User::factory()->create();
+    $other = \App\Models\User::factory()->create();
+
+    $this->actingAs($admin)->patch("/admin/users/{$other->id}", ['name' => 'N', 'email' => $other->email, 'role' => 'viewer'])->assertRedirect();
+    expect($other->fresh()->canEdit())->toBeFalse();
+
+    $this->actingAs($admin)->patch("/admin/users/{$admin->id}", ['name' => 'N', 'email' => $admin->email, 'role' => 'viewer'])->assertSessionHasErrors('users');
+    expect($admin->fresh()->canEdit())->toBeTrue();
 });

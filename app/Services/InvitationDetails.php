@@ -24,6 +24,8 @@ class InvitationDetails
         'rsvp_by' => '15 November',
         'intro' => 'In a moment filled with joy and gratitude, we invite you to share in our happiness as we begin our new journey together.',
         'join_line' => 'Join us as we celebrate our nikah',
+        'verse' => 'وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً',
+        'welcome' => 'نَتَشَرَّفُ بِحُضُورِكُمْ',
         'note' => '',
         'share_title' => '',
         'share_description' => '',

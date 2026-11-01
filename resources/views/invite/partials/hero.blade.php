@@ -33,7 +33,7 @@
     </div>
 
     <p class="lead when">{{ $d['day_name'] }}, {{ $d['date_long'] }}, {{ $d['start_time'] }}</p>
-    <p class="verse" lang="ar" dir="rtl">وَمِن كُلِّ شَيْءٍ خَلَقْنَا زَوْجَيْنِ لَعَلَّكُمْ تَذَكَّرُونَ</p>
+    @if (trim($d['verse'] ?? '') !== '')<p class="verse{{ mb_strlen($d['verse']) > 60 ? ' long' : '' }}" lang="ar" dir="rtl">{{ $d['verse'] }}</p>@endif
     @if ($d['note'])<span class="note">{{ $d['note'] }}</span>@endif
   </div>
 </section>

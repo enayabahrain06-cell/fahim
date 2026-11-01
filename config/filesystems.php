@@ -41,7 +41,7 @@ return [
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),
-            'url' => env('APP_URL').'/storage',
+            'url' => '/storage', // relative, so photos load from whatever address the site is opened on
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

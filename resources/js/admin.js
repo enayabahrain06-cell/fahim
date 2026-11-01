@@ -85,25 +85,42 @@ new ResizeObserver(() => document.documentElement.style.setProperty('--appbar-h'
 document.querySelectorAll('.stat[data-filter]').forEach(a => a.addEventListener('click', () => setFilter(a.dataset.filter)));
 
 /* ---------- latest replies on the overview ---------- */
+let recentShown = 5;
 function renderRecent() {
-  const latest = rows.filter(r => r.replied_at).sort((a, b) => b.replied_at.localeCompare(a.replied_at)).slice(0, 5);
-  $('recent').replaceChildren(...(latest.length ? latest.map(r => {
+  const all = rows.filter(r => r.replied_at).sort((a, b) => b.replied_at.localeCompare(a.replied_at));
+  const latest = all.slice(0, recentShown);
+  const items = latest.map(r => {
     const name = r.guest_names?.[0] || r.name;
-    const pill = el('span', { className: 'pill ' + (r.status === 'yes' ? 'yes' : 'no'), textContent: r.status === 'yes' ? `Coming · ${r.guests}` : 'Declined' });
-    const meta = [name !== r.name ? `Invited as ${r.name}` : '', r.phone ? '+' + r.phone : '', 'Replied ' + fmtDate(r.replied_at) + ' ' + fmtTime(new Date(r.replied_at))].filter(Boolean).join(' · ');
-    return el('li', { className: 'row' }, el('span', { className: 'nm', textContent: name }), pill, el('span', { className: 'meta', textContent: meta }));
-  }) : [el('li', { className: 'note', textContent: 'No replies yet.' })]));
+    const pill = el('span', { className: 'pill ' + (r.status === 'yes' ? 'yes' : 'no'), textContent: r.status === 'yes' ? `Respondent · ${r.guests}` : 'Declined' });
+    const meta = [name !== r.name ? `Invited as ${r.name}` : '', r.phone ? '+' + r.phone : '', `Replied on ${fmtDate(r.replied_at)} at ${fmtTime(new Date(r.replied_at))}`].filter(Boolean).join(' · ');
+    const li = el('li', { className: 'row tap' }, el('span', { className: 'nm', textContent: name }), pill, el('span', { className: 'meta', textContent: meta }));
+    li.tabIndex = 0;
+    li.setAttribute('role', 'button');
+    li.setAttribute('aria-label', `Details for ${name}`);
+    li.addEventListener('click', () => detailsSheet(r));
+    li.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === li) { e.preventDefault(); detailsSheet(r); } });
+    return li;
+  });
+  if (!items.length) items.push(el('li', { className: 'note', textContent: 'No replies yet.' }));
+  $('recent').replaceChildren(...items);
+  const more = $('recentMore');
+  more.hidden = all.length <= recentShown;
+  more.textContent = `View more (${all.length - recentShown} left)`;
 }
+
+$('recentMore').addEventListener('click', () => { recentShown += 10; renderRecent(); });
 
 /* ---------- stats ---------- */
 function renderStats(s) {
   countUp($('guestsComing'), s.guests_coming);
   countUp($('yesCount'), s.accepted);
   countUp($('noCount'), s.declined);
+  countUp($('kComing'), s.guests_coming);
+  countUp($('kDeclined'), s.declined);
   countUp($('ringPct'), s.acceptance_pct, '%');
   $('ringArc').setAttribute('stroke-dasharray', (s.acceptance_pct / 100 * 314.16).toFixed(1) + ' 314.16');
   $('ringArc').style.opacity = s.acceptance_pct ? 1 : 0;
-  $('heroNote').textContent = s.answered ? `${s.accepted} accepted · ${s.declined} declined` : 'No replies yet';
+  $('heroNote').textContent = s.answered ? `${s.accepted} yes · ${s.declined} no` : 'No replies yet';
 }
 
 /* ---------- new-reply badge on the Guests tab ---------- */
@@ -163,12 +180,54 @@ function renderPager(total, pages) {
   $('list').after(nav);
 }
 
+/* Select mode: tick several guests, then delete them in one go. */
+let selecting = false;
+const selected = new Set();
+let shownMatches = [];
+
+function updateSelBar() {
+  const n = selected.size;
+  $('selbar').hidden = !selecting;
+  $('selCount').textContent = `${n} selected`;
+  $('selDelete').disabled = !n;
+  $('selDelete').textContent = n ? `Delete (${n})` : 'Delete';
+  $('selAll').textContent = shownMatches.length && shownMatches.every(r => selected.has(r.id)) ? 'Select none' : 'Select all';
+  $('selectMode').textContent = selecting ? 'Cancel' : 'Select';
+  $('selectMode').setAttribute('aria-pressed', String(selecting));
+  document.body.classList.toggle('selecting', selecting);
+}
+function setSelecting(on) {
+  selecting = on;
+  if (!on) selected.clear();
+  renderList();
+}
+$('selectMode').addEventListener('click', () => setSelecting(!selecting));
+$('selAll').addEventListener('click', () => {
+  const all = shownMatches.length && shownMatches.every(r => selected.has(r.id));
+  shownMatches.forEach(r => all ? selected.delete(r.id) : selected.add(r.id));
+  renderList();
+});
+$('selDelete').addEventListener('click', async () => {
+  const ids = [...selected];
+  if (!ids.length) return;
+  const label = `${ids.length} ${ids.length === 1 ? 'guest' : 'guests'}`;
+  if (!await confirmSheet(`Remove ${label}?`, `This removes ${label} and their replies from the list. It can’t be undone.`, `Remove ${label}`, true)) return;
+  try {
+    const res = await api('DELETE', '/admin/invitees', { json: { ids } });
+    toast(`${res.removed} ${res.removed === 1 ? 'guest' : 'guests'} removed`);
+    setSelecting(false);
+    await load();
+  } catch (e) { toast(e.message, true); }
+});
+
 function renderList() {
   const q = $('search').value.trim().toLowerCase();
   const matches = rows
     .filter(r => filter === 'all' || r.status === filter)
     .filter(r => !q || [r.name, ...(r.guest_names || []), r.phone || ''].join(' ').toLowerCase().includes(q))
     .sort((a, b) => (b.replied_at || '').localeCompare(a.replied_at || '') || b.id - a.id);
+  shownMatches = matches;
+  for (const id of [...selected]) if (!rows.some(r => r.id === id)) selected.delete(id);
   const paged = rows.length >= PAGE_AT;
   const pages = paged ? Math.max(1, Math.ceil(matches.length / PER_PAGE)) : 1;
   if (page > pages) page = pages;
@@ -179,44 +238,47 @@ function renderList() {
   list.replaceChildren();
   if (!shown.length) {
     list.append(el('li', { className: 'empty', textContent: rows.length ? 'No one matches' : 'Your guests will appear here' }));
+    updateSelBar();
     return;
   }
   let fresh = 0;
   shown.forEach(r => {
-    const key = [r.id, r.status, r.replied_at, r.name, r.seats, r.token, r.notes, r.phone, r.open_count].join('|');
+    const key = [r.id, r.status, r.replied_at, r.name, r.seats, r.notes, r.phone].join('|');
     const li = el('li', { className: 'row' });
     if (!seen.has(key)) { seen.add(key); li.classList.add('new'); li.style.animationDelay = Math.min(fresh++, 12) * 45 + 'ms'; }
 
     const pill = r.status === 'pending' ? null : el('span', {
       className: 'pill ' + (r.status === 'yes' ? 'yes' : 'no'),
-      textContent: r.status === 'yes' ? `Coming · ${r.guests}` : 'Declined',
+      textContent: r.status === 'yes' ? `Respondent · ${r.guests}` : 'Declined',
     });
     const meta = [
       r.status !== 'pending' && r.guest_names?.[0] && r.guest_names[0] !== r.name ? `Invited as ${r.name}` : '',
-      `${r.seats} ${r.seats === 1 ? 'seat' : 'seats'}`,
-      r.replied_at ? 'Replied ' + fmtDate(r.replied_at) : '',
-      r.open_count ? `Opened ${r.open_count}×` : 'Not opened yet',
+      r.replied_at ? `Replied on ${fmtDate(r.replied_at)} at ${fmtTime(new Date(r.replied_at))}` : `${r.seats} ${r.seats === 1 ? 'seat' : 'seats'} · No reply yet`,
     ].filter(Boolean).join(' · ');
 
-    const more = el('button', { type: 'button', className: 'more', textContent: '•••', ariaLabel: `More for ${r.name}` });
-    more.setAttribute('aria-label', `More actions for ${r.name}`);
-    more.addEventListener('click', () => actionsSheet(r));
+    // The whole row opens the guest's details; in Select mode it ticks the guest instead.
+    const who = (r.status !== 'pending' && r.guest_names?.[0]) || r.name;
+    const act = selecting
+      ? () => { selected.has(r.id) ? selected.delete(r.id) : selected.add(r.id); li.classList.toggle('selected', selected.has(r.id)); li.setAttribute('aria-checked', String(selected.has(r.id))); updateSelBar(); }
+      : () => detailsSheet(r);
+    li.classList.add('tap');
+    li.tabIndex = 0;
+    li.setAttribute('role', selecting ? 'checkbox' : 'button');
+    li.setAttribute('aria-label', selecting ? `Select ${who}` : `Details for ${who}`);
+    if (selecting) {
+      li.classList.add('selectable');
+      li.classList.toggle('selected', selected.has(r.id));
+      li.setAttribute('aria-checked', String(selected.has(r.id)));
+      li.append(el('span', { className: 'chk', ariaHidden: 'true' }));
+    }
+    li.addEventListener('click', act);
+    li.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === li) { e.preventDefault(); act(); } });
 
     li.append(el('span', { className: 'nm', textContent: (r.status !== 'pending' && r.guest_names?.[0]) || r.name }), ...(pill ? [pill] : []), el('span', { className: 'meta', textContent: meta }));
     if (r.notes) li.append(el('span', { className: 'private-note', textContent: r.notes }));
-    li.append(el('div', { className: 'acts' }, more));
     list.append(li);
   });
-}
-
-async function copyLink(r, btn) {
-  try {
-    await navigator.clipboard.writeText(r.link);
-    if (btn) { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy link'; }, 1800); }
-    toast('Link copied');
-  } catch (e) {
-    window.prompt('Copy this guest’s link:', r.link);
-  }
+  updateSelBar();
 }
 
 /* ---------- bottom sheets ---------- */
@@ -236,58 +298,51 @@ function confirmSheet(title, message, okLabel, danger = false) {
     ok.addEventListener('click', () => { answer = true; sheet.close(); });
     cancel.addEventListener('click', () => sheet.close());
     sheet.addEventListener('close', () => resolve(answer), { once: true });
-    openSheet(title, el('p', { className: 'sheet-sub', textContent: message }), el('div', { className: 'sheet-actions' }, ok, cancel));
-    ok.focus();
+    // Destructive actions: the button stays locked until "remove" is typed, and focus starts on Cancel.
+    let guard = null;
+    if (danger) {
+      ok.disabled = true;
+      guard = el('input', { type: 'text', placeholder: 'Type remove to confirm', autocomplete: 'off', autocapitalize: 'off', spellcheck: false, ariaLabel: 'Type remove to confirm' });
+      guard.setAttribute('aria-label', 'Type remove to confirm');
+      guard.addEventListener('input', () => { ok.disabled = guard.value.trim().toLowerCase() !== 'remove'; });
+    }
+    openSheet(title, el('p', { className: 'sheet-sub', textContent: message }), ...(guard ? [guard] : []), el('div', { className: 'sheet-actions' }, ok, cancel));
+    (danger ? cancel : ok).focus();
   });
 }
 
-function actionsSheet(r) {
-  const btn = (label, fn, cls = 'secondary') => { const b = el('button', { type: 'button', className: cls, textContent: label }); b.addEventListener('click', fn); return b; };
-  const open = el('a', { className: 'secondary', href: r.link, target: '_blank', rel: 'noopener', textContent: 'Open invitation' });
-  const actions = [
-    open,
-    btn('Copy link', () => { sheet.close(); copyLink(r); }),
-    btn('Edit', () => editSheet(r)),
-    r.status !== 'pending' ? btn('Clear reply', () => act(r, 'reset', 'Clear reply?', `Clear the reply from ${r.name}? They can answer again from their link.`, 'Clear reply')) : null,
-    btn('New link', () => act(r, 'regenerate', 'Make a new link?', `The link you already sent to ${r.name} will stop working. Send them the new one.`, 'Make new link')),
-    btn('Remove', () => act(r, 'destroy', 'Remove guest?', `Remove ${r.name}? Their link will stop working.`, 'Remove', true), 'secondary danger'),
-  ];
-  const sub = r.status === 'yes' ? `Coming with ${r.guests} of ${r.seats}` : r.status === 'no' ? 'Declined' : `${r.seats} ${r.seats === 1 ? 'seat' : 'seats'}`;
-  openSheet(r.name, el('p', { className: 'sheet-sub', textContent: sub }), el('div', { className: 'sheet-actions' }, ...actions));
+function detailsSheet(r) {
+  const name = (r.status !== 'pending' && r.guest_names?.[0]) || r.name;
+  const status = r.status === 'yes' ? `Respondent · ${r.guests} ${r.guests === 1 ? 'person' : 'people'}` : r.status === 'no' ? 'Declined' : 'No reply yet';
+  const line = (label, value) => value ? el('div', { className: 'detail-row' }, el('span', { textContent: label }), el('b', { textContent: value })) : null;
+  const names = (r.guest_names || []).join(', ');
+  const phone = r.phone ? el('a', { href: `tel:+${r.phone}`, textContent: '+' + r.phone }) : null;
+  const phoneRow = phone ? el('div', { className: 'detail-row' }, el('span', { textContent: 'WhatsApp' }), el('b', {}, phone)) : null;
+  const close = el('button', { type: 'button', className: 'secondary center', textContent: 'Close' });
+  close.addEventListener('click', () => sheet.close());
+  const remove = el('button', { type: 'button', className: 'secondary danger center', textContent: 'Remove guest' });
+  remove.addEventListener('click', () => removeGuest(r));
+  openSheet(name,
+    el('div', { className: 'details' },
+      ...[
+        line('Reply', status),
+        line('Guest names', names && names !== name ? names : ''),
+        line('Invited as', r.name !== name ? r.name : ''),
+        line('Seats', r.seats ? String(r.seats) : ''),
+        line('Replied', r.replied_at ? `${fmtDate(r.replied_at)} ${fmtTime(new Date(r.replied_at))}` : ''),
+        phoneRow,
+        line('Note', r.notes || ''),
+      ].filter(Boolean)),
+    el('div', { className: 'sheet-actions' }, close, remove));
 }
 
-async function act(r, action, title, message, okLabel, danger = false) {
-  if (!await confirmSheet(title, message, okLabel, danger)) return;
+async function removeGuest(r) {
+  if (!await confirmSheet('Remove guest?', `Remove ${r.name} from the list?`, 'Remove', true)) return;
   try {
-    if (action === 'destroy') await api('DELETE', `/admin/invitees/${r.id}`);
-    else await api('POST', `/admin/invitees/${r.id}/${action}`);
-    toast(action === 'destroy' ? `${r.name} removed` : action === 'reset' ? 'Reply cleared' : 'New link ready. Send it to the guest.');
+    await api('DELETE', `/admin/invitees/${r.id}`);
+    toast(`${r.name} removed`);
     await load();
   } catch (e) { toast(e.message, true); }
-}
-
-function editSheet(r) {
-  const field = (label, props) => el('label', { className: props.wide ? 'wide' : '' }, label, el('input', props));
-  const form = el('form', { className: 'form', noValidate: true },
-    field('Name', { name: 'name', value: r.name, maxLength: 120, required: true, wide: true }),
-    field('Seats', { name: 'seats', type: 'number', min: 1, max: CFG.maxSeats, value: r.seats, inputMode: 'numeric' }),
-    field('WhatsApp number', { name: 'phone', type: 'tel', inputMode: 'tel', value: r.phone || '', maxLength: 24 }),
-    el('label', { className: 'wide' }, 'Private note (only you see it)', el('textarea', { name: 'notes', rows: 2, maxLength: 255, value: r.notes || '' })),
-  );
-  const err = el('p', { className: 'sheet-err wide', role: 'alert' });
-  const save = el('button', { type: 'submit', className: 'primary wide', textContent: 'Save' });
-  form.append(err, save);
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    save.disabled = true; err.textContent = '';
-    const f = form.elements;
-    try {
-      await api('PATCH', `/admin/invitees/${r.id}`, { json: { name: f.name.value.trim(), seats: Number(f.seats.value) || 1, phone: f.phone.value, notes: f.notes.value.trim() || null } });
-      sheet.close(); toast('Saved'); await load();
-    } catch (e2) { err.textContent = e2.message; save.disabled = false; }
-  });
-  openSheet('Edit guest', form);
-  form.elements.name.focus();
 }
 
 /* ---------- loading ---------- */
@@ -330,17 +385,25 @@ $('sharedCopy')?.addEventListener('click', async e => {
     window.prompt('Copy this link:', url);
   }
 });
-$('sharedCopyMsg')?.addEventListener('click', async e => {
-  const btn = e.currentTarget, text = `${details.share_message_text}\n${$('sharedUrl').value}`;
-  try {
-    await navigator.clipboard.writeText(text);
-    btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = 'Copy message'; }, 1800);
-    toast('Message copied');
-  } catch (err) {
-    window.prompt('Copy this message:', text);
-  }
-});
 /* ---------- photos ---------- */
+/** Asks for the account password; resolves with it, or null if cancelled. The server checks it. */
+function passwordSheet(message) {
+  return new Promise(resolve => {
+    const input = el('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
+    input.setAttribute('aria-label', 'Password');
+    const ok = el('button', { type: 'button', className: 'primary center', textContent: 'Continue' });
+    const cancel = el('button', { type: 'button', className: 'secondary center', textContent: 'Cancel' });
+    let answer = null;
+    const submit = () => { if (!input.value) { input.focus(); return; } answer = input.value; sheet.close(); };
+    ok.addEventListener('click', submit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+    cancel.addEventListener('click', () => sheet.close());
+    sheet.addEventListener('close', () => resolve(answer), { once: true });
+    openSheet('Enter your password', el('p', { className: 'sheet-sub', textContent: message }), input, el('div', { className: 'sheet-actions' }, ok, cancel));
+    input.focus();
+  });
+}
+
 /** Resizes on the phone first so uploads are quick; the server checks and re-encodes again. */
 async function shrink(file, max = 1600) {
   try {
@@ -389,8 +452,10 @@ document.querySelectorAll('.slot').forEach(slot => {
   });
   slot.querySelector('.hd').addEventListener('click', async () => {
     const hide = !hiddenSlots[name];
+    const password = await passwordSheet('Changing the invitation photos needs your password.');
+    if (!password) return;
     try {
-      const r = await api('PUT', `/admin/photos/${name}/hidden`, { json: { hidden: hide } });
+      const r = await api('PUT', `/admin/photos/${name}/hidden`, { json: { hidden: hide, password } });
       showPhotos(r.photos, r.hidden);
       toast(hide ? 'Photo hidden from the invitation' : 'Photo shown on the invitation');
       $('photoNote').textContent = hide ? 'Hidden. The invitation shows no picture there.' : 'Shown again on the invitation.';
@@ -399,8 +464,10 @@ document.querySelectorAll('.slot').forEach(slot => {
   slot.querySelector('.rm').addEventListener('click', async () => {
     if (pending[name]) { dropPending(name); refreshSlot(slot, slot.dataset.saved); $('photoNote').textContent = 'Choice discarded.'; return; }
     if (!await confirmSheet('Remove photo?', 'The invitation will show its built-in artwork again.', 'Remove', true)) return;
+    const password = await passwordSheet('Changing the invitation photos needs your password.');
+    if (!password) return;
     try {
-      const r = await api('DELETE', `/admin/photos/${name}`);
+      const r = await api('DELETE', `/admin/photos/${name}`, { json: { password } });
       showPhotos(r.photos, r.hidden); toast('Photo removed');
       $('photoNote').textContent = 'Photo removed. The invitation shows its built-in artwork.';
     } catch (e) { toast(e.message, true); }
@@ -409,11 +476,13 @@ document.querySelectorAll('.slot').forEach(slot => {
 $('photoSave').addEventListener('click', async () => {
   const btn = $('photoSave'), names = Object.keys(pending);
   if (!names.length) return;
+  const password = await passwordSheet('Changing the invitation photos needs your password.');
+  if (!password) return;
   btn.disabled = true; btn.textContent = 'Saving…'; $('photoNote').textContent = 'Uploading…';
   try {
     let photos, hiddenNow;
     for (const name of names) {
-      const form = new FormData(); form.append('photo', await shrink(pending[name].file));
+      const form = new FormData(); form.append('photo', await shrink(pending[name].file)); form.append('password', password);
       const r = await api('POST', `/admin/photos/${name}`, { form });
       photos = r.photos; hiddenNow = r.hidden;
       dropPending(name);
@@ -495,6 +564,21 @@ function syncMomentButton() { $('addMoment').hidden = $('scheduleRows').children
 (details.schedule || []).forEach(addMoment);
 syncMomentButton();
 $('addMoment').addEventListener('click', () => { addMoment(); $('scheduleRows').lastElementChild.querySelector('input').focus(); });
+
+/* Verse picker: choose a ready verse (or write your own, or hide it). */
+const versePick = $('versePick'), verseText = $('verseText');
+function syncVersePick() {
+  const v = verseText.value.trim();
+  const match = [...versePick.options].find(o => o.value && o.value !== '__none' && o.value === v);
+  versePick.value = match ? match.value : (v === '' ? '__none' : '');
+}
+versePick?.addEventListener('change', () => {
+  if (versePick.value === '__none') verseText.value = '';
+  else if (versePick.value) verseText.value = versePick.value;
+  else verseText.focus();
+});
+verseText?.addEventListener('input', syncVersePick);
+if (versePick) syncVersePick();
 
 /** Saves the whole details form (plus any overrides) and refreshes everything that shows the details. */
 async function saveDetails(overrides = {}, note = $('detailsNote')) {

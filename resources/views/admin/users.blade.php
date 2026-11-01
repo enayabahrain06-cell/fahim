@@ -52,7 +52,7 @@
       @foreach ($users as $u)
         <li class="row">
           <span class="nm">{{ $u->name }}@if ($u->is(auth()->user())) (you)@endif</span>
-          <span class="meta">{{ $u->username ? $u->username.' · ' : '' }}{{ $u->email }}</span>
+          <span class="meta">{{ $u->username ? $u->username.' · ' : '' }}{{ $u->email }}{{ $u->role === 'viewer' ? ' · view only' : '' }}</span>
           <details class="meta">
             <summary>Edit</summary>
             <form class="form" method="POST" action="{{ route('admin.users.update', $u) }}">
@@ -60,6 +60,8 @@
               <label class="field">Name <input name="name" value="{{ $u->name }}" required maxlength="120"></label>
               <label class="field">Username <small>letters, numbers . _ -</small> <input name="username" value="{{ $u->username }}" maxlength="60" autocapitalize="none"></label>
               <label class="field">Email <input name="email" type="email" value="{{ $u->email }}" required maxlength="190"></label>
+              <label class="field">Access
+                <select name="role"><option value="admin"{{ $u->role === 'admin' ? ' selected' : '' }}>Admin (can edit)</option><option value="viewer"{{ $u->role === 'viewer' ? ' selected' : '' }}>Viewer (view only)</option></select></label>
               <label class="field">New password <small>leave blank to keep, at least 10 characters</small>
                 <input name="password" type="password" autocomplete="new-password" minlength="10"></label>
               <label class="field">Repeat new password
@@ -83,6 +85,8 @@
       <label class="field">Name <input name="name" required maxlength="120" autocomplete="off"></label>
       <label class="field">Username <small>letters, numbers . _ -</small> <input name="username" maxlength="60" autocomplete="off" autocapitalize="none"></label>
       <label class="field">Email <input name="email" type="email" required maxlength="190" autocomplete="off"></label>
+      <label class="field">Access
+        <select name="role"><option value="admin">Admin (can edit)</option><option value="viewer">Viewer (view only)</option></select></label>
       <label class="field">Password <small>at least 10 characters</small>
         <input name="password" type="password" autocomplete="new-password" required minlength="10"></label>
       <label class="field">Repeat password

@@ -128,9 +128,9 @@ function autoScroll() {
     if (last === null) last = ts;
     const dt = Math.min(0.05, (ts - last) / 1000); last = ts;
     const end = Math.min(target.getBoundingClientRect().top + window.scrollY - 24, root.scrollHeight - window.innerHeight);
-    v = Math.min(95, v + 60 * dt);                               // ease in up to ~95 px/s
+    v = Math.min(70, v + 45 * dt);                               // ease in up to ~70 px/s
     const remain = end - y;
-    const speed = remain < 320 ? Math.max(20, v * remain / 320) : v; // ease out near the end
+    const speed = remain < 320 ? Math.max(15, v * remain / 320) : v; // ease out near the end
     y = Math.min(end, y + speed * dt);
     window.scrollTo(0, y);
     if (y >= end - 0.5) { off(); $('openRsvp').classList.add('nudge'); return; }

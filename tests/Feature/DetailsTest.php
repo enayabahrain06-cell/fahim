@@ -12,6 +12,8 @@ function validDetails(array $overrides = []): array
         'venue' => 'Garden Hall', 'venue_address' => 'Hall No. 2',
         'map_link' => 'https://maps.app.goo.gl/example',
         'rsvp_by' => '25 November', 'intro' => 'Join our joy.', 'join_line' => 'Celebrate with us',
+        'verse' => 'هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ',
+        'welcome' => 'نَتَشَرَّفُ بِحُضُورِكُمْ',
         'note' => 'Ladies only',
         'schedule' => [['time' => '6:15 PM', 'title' => 'Nikah'], ['time' => '', 'title' => '']],
         'music' => false,
@@ -80,3 +82,19 @@ it('requires the core fields and limits their length', function (string $field, 
     ['groom', ''], ['bride', str_repeat('x', 61)], ['date', '19/11/2026'], ['time', '7pm'], ['venue', ''],
     ['intro', str_repeat('x', 401)], ['schedule', array_fill(0, 9, ['time' => '1', 'title' => 'x'])],
 ]);
+
+it('shows the chosen verse on the invitation and hides it when emptied', function () {
+    $this->actingAs(admin())->putJson('/admin/details', validDetails())->assertOk()->assertJsonPath('details.verse', 'هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ');
+    $this->get('/join')->assertOk()->assertSee('هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ', false)->assertSee('class="verse"', false);
+
+    $this->actingAs(admin())->putJson('/admin/details', validDetails(['verse' => '']))->assertOk();
+    $this->get('/join')->assertOk()->assertDontSee('class="verse"', false);
+});
+
+it('shows the Arabic closing line and hides it when emptied', function () {
+    $this->actingAs(admin())->putJson('/admin/details', validDetails())->assertOk();
+    $this->get('/join')->assertOk()->assertSee('نَتَشَرَّفُ بِحُضُورِكُمْ', false)->assertSee('class="honor"', false);
+
+    $this->actingAs(admin())->putJson('/admin/details', validDetails(['welcome' => '']))->assertOk();
+    $this->get('/join')->assertOk()->assertDontSee('class="honor"', false);
+});

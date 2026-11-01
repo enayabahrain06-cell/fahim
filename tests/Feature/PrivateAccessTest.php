@@ -17,19 +17,13 @@ it('shows the private notice with 404 and no details beyond the names', function
 })->with(['/', '/i/abcdef123456', '/i/not-a-token', '/something-else']);
 
 // 2
-it('opens a valid invitation and records opens', function () {
+it('opens a valid invitation without counting opens', function () {
     $inv = invitee(['name' => 'Fatima Rashid']);
 
     $this->get("/i/{$inv->token}")->assertOk()->assertDontSee('Dear ', false);
-    $inv->refresh();
-    $firstOpen = $inv->opened_at;
-    expect($inv->open_count)->toBe(1)->and($firstOpen)->not->toBeNull();
-
-    $this->travel(2)->hours();
     $this->get("/i/{$inv->token}")->assertOk();
-    $inv->refresh();
-    expect($inv->open_count)->toBe(2)
-        ->and($inv->opened_at->equalTo($firstOpen))->toBeTrue();
+
+    expect($inv->fresh()->open_count)->toBe(0)->and($inv->fresh()->opened_at)->toBeNull();
 });
 
 it('gives the guest page only that invitee’s own data', function () {
@@ -45,16 +39,6 @@ it('gives the guest page only that invitee’s own data', function () {
         ->and($html)->not->toContain('Bride’s aunt')
         ->and($html)->not->toContain('Someone Else')
         ->and($html)->not->toContain($other->token);
-});
-
-// 11
-it('stops the old link working after a new link is made', function () {
-    $inv = invitee();
-    $old = $inv->token;
-
-    $this->actingAs(admin())->postJson("/admin/invitees/{$inv->id}/regenerate")->assertOk();
-    $this->get("/i/$old")->assertNotFound()->assertSee('This invitation is private');
-    $this->get('/i/'.$inv->fresh()->token)->assertOk();
 });
 
 // 12

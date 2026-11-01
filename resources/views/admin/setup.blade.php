@@ -6,7 +6,7 @@
 
 @section('content')
 <main class="gate">
-  <img class="gate-icon" src="/icons/icon-192.png" alt="" width="72" height="72">
+  <img class="gate-icon" src="/icons/app-192.png" alt="" width="72" height="72">
   <form class="gate-card" method="POST" action="{{ url('/admin/setup') }}">
     @csrf
     <p class="eyebrow">Wedding dashboard</p>

@@ -124,3 +124,37 @@ it('limits replies from one visitor across many links, so links can’t be guess
     }
     $this->postJson('/i/'.bin2hex(random_bytes(6)).'/rsvp', ['attending' => false])->assertStatus(429);
 });
+
+it('shows Coming and Declined replies correctly on the dashboard, from personal and shared links', function () {
+    $coming = invitee(['name' => 'Coming Guest', 'seats' => 4]);
+    $declined = invitee(['name' => 'Declined Guest', 'seats' => 2]);
+    $waiting = invitee(['name' => 'Waiting Guest', 'seats' => 1]);
+
+    $this->postJson("/i/{$coming->token}/rsvp", ['attending' => true, 'count' => 3, 'name' => 'Coming Guest'])->assertOk();
+    $this->postJson("/i/{$declined->token}/rsvp", ['attending' => false])->assertOk();
+    $this->postJson('/join', ['attending' => true, 'count' => 2, 'name' => 'Via Shared Link'])->assertOk();
+    $this->postJson('/join', ['attending' => false])->assertOk();
+
+    $this->actingAs(admin());
+    $this->getJson('/admin/stats')->assertOk()->assertJsonPath('stats.accepted', 2)
+        ->assertJsonPath('stats.declined', 2)->assertJsonPath('stats.waiting', 1)
+        ->assertJsonPath('stats.guests_coming', 5);
+
+    $rows = collect($this->getJson('/admin/invitees')->json('invitees'))->keyBy('name');
+    expect($rows['Coming Guest']['status'])->toBe('yes')->and($rows['Coming Guest']['guests'])->toBe(3)
+        ->and($rows['Declined Guest']['status'])->toBe('no')->and($rows['Declined Guest']['guests'])->toBe(0)
+        ->and($rows['Waiting Guest']['status'])->toBe('pending')
+        ->and($rows['Via Shared Link']['status'])->toBe('yes');
+
+    // Changing their mind from Coming to Declined updates the totals.
+    $this->postJson("/i/{$coming->token}/rsvp", ['attending' => false])->assertOk();
+    $this->getJson('/admin/stats')->assertJsonPath('stats.accepted', 1)->assertJsonPath('stats.guests_coming', 2);
+});
+
+it('opens the one shared link for everyone, without a personal token, and keeps it private from search engines', function () {
+    $res = $this->get('/join')->assertOk();
+
+    expect($res->headers->get('X-Robots-Tag'))->toContain('noindex');
+    $res->assertSee('rsvp', false);
+    expect(Invitee::count())->toBe(0); // just looking at the page creates no guest
+});

@@ -1,5 +1,5 @@
 <section class="sec olive-tail">
   <p class="farewell">Hope to see you there!</p>
-  <p class="honor" lang="ar" dir="rtl">شَرِّفُونَا بِحُضُورِكُمْ</p>
+  @if (trim($d['welcome'] ?? '') !== '')<p class="honor" lang="ar" dir="rtl">{{ $d['welcome'] }}</p>@endif
   <p class="sign">{{ $d['groom'] }} &amp; {{ $d['bride'] }}</p>
 </section>

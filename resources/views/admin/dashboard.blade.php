@@ -42,7 +42,7 @@
       <p id="updated">Loading…</p>
       <div class="foot-links">
         <a href="{{ route('admin.export.csv') }}">Export CSV</a>
-        <a href="{{ route('admin.users') }}">Users</a>
+        @if (auth()->user()->canEdit())<a href="{{ route('admin.users') }}">Users</a>@endif
         <form method="POST" action="{{ route('admin.logout') }}">
           @csrf
           <button type="submit" class="linkbtn">Sign out</button>
@@ -56,9 +56,14 @@
   </section>
 
   <section class="screen" id="screen-invitation" aria-label="Invitation" hidden>
+    @unless (auth()->user()->canEdit())
+    <p class="msg">Your account is view-only.</p>
+    @endunless
+    <div @unless (auth()->user()->canEdit()) hidden @endunless>
     @include('admin.partials.photos')
     @include('admin.partials.music')
     @include('admin.partials.details')
+    </div>
   </section>
 </main>
 

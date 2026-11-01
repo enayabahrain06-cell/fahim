@@ -6,17 +6,18 @@
   </div>
   <div class="ring" aria-hidden="true">
     <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke="rgba(247,242,233,.2)" stroke-width="12"/><circle id="ringArc" cx="60" cy="60" r="50" fill="none" stroke="#F7F2E9" stroke-width="12" stroke-linecap="round" stroke-dasharray="0 314.16"/></svg>
-    <div class="lbl"><div><b id="ringPct">0%</b><span>Accepted</span></div></div>
+    <div class="lbl"><div><b id="ringPct">0%</b><span>Said yes</span></div></div>
   </div>
 </section>
 
 <section class="stats" aria-label="Replies">
-  <a class="stat yes" href="#guests" data-filter="yes"><b id="yesCount">0</b><span>Accepted replies</span></a>
-  <a class="stat no" href="#guests" data-filter="no"><b id="noCount">0</b><span>Declined replies</span></a>
+  <a class="stat yes" href="#guests" data-filter="yes"><b id="yesCount">0</b><span>Yes replies</span></a>
+  <a class="stat no" href="#guests" data-filter="no"><b id="noCount">0</b><span>No replies</span></a>
 </section>
 
 <section class="card" aria-label="Latest replies">
   <p class="eyebrow">Latest replies</p>
   <ul class="list" id="recent"><li class="note">No replies yet.</li></ul>
+  <button type="button" class="secondary wide" id="recentMore" hidden style="margin-top:10px">View more</button>
 </section>
 

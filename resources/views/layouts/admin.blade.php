@@ -12,8 +12,9 @@
 <meta name="apple-mobile-web-app-title" content="RSVPs">
 <title>@yield('title', 'Wedding dashboard')</title>
 <link rel="manifest" href="/manifest.webmanifest">
-<link rel="icon" type="image/png" href="/icons/favicon-32.png">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/app-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/icons/app-48.png">
+<link rel="apple-touch-icon" href="/icons/app-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,400&family=Rubik:wght@300;400;500&display=swap" rel="stylesheet">

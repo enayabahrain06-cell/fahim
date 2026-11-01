@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'username',
         'email',
+        'role',
         'password',
     ];
 
@@ -46,5 +47,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function canEdit(): bool
+    {
+        return $this->role !== 'viewer';
     }
 }
