@@ -14,6 +14,8 @@ function validDetails(array $overrides = []): array
         'rsvp_by' => '25 November', 'intro' => 'Join our joy.', 'join_line' => 'Celebrate with us',
         'verse' => 'هُنَّ لِبَاسٌ لَّكُمْ وَأَنتُمْ لِبَاسٌ لَّهُنَّ',
         'welcome' => 'نَتَشَرَّفُ بِحُضُورِكُمْ',
+        'cover' => 'دَعْوَةُ زَفَافٍ',
+        'cover_tap' => 'اضغط للفتح',
         'note' => 'Ladies only',
         'schedule' => [['time' => '6:15 PM', 'title' => 'Nikah'], ['time' => '', 'title' => '']],
         'music' => false,
@@ -97,4 +99,21 @@ it('shows the Arabic closing line and hides it when emptied', function () {
 
     $this->actingAs(admin())->putJson('/admin/details', validDetails(['welcome' => '']))->assertOk();
     $this->get('/join')->assertOk()->assertDontSee('class="honor"', false);
+});
+
+
+it('shows the Arabic title on the envelope and hides it when emptied', function () {
+    $this->actingAs(admin())->putJson('/admin/details', validDetails())->assertOk();
+    $this->get('/join')->assertOk()->assertSee('class="env-ar"', false)->assertSee('دَعْوَةُ زَفَافٍ', false);
+
+    $this->actingAs(admin())->putJson('/admin/details', validDetails(['cover' => '']))->assertOk();
+    $this->get('/join')->assertOk()->assertDontSee('class="env-ar"', false);
+});
+
+it('shows the Arabic tap-to-open line on the envelope and hides it when emptied', function () {
+    $this->actingAs(admin())->putJson('/admin/details', validDetails())->assertOk();
+    $this->get('/join')->assertOk()->assertSee('class="env-ar tap"', false)->assertSee('اضغط للفتح', false);
+
+    $this->actingAs(admin())->putJson('/admin/details', validDetails(['cover_tap' => '']))->assertOk();
+    $this->get('/join')->assertOk()->assertDontSee('class="env-ar tap"', false);
 });

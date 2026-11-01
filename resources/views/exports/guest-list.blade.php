@@ -63,7 +63,7 @@
 
   <table class="sum">
     <tr>
-      <td class="key"><b>{{ $stats['guests_coming'] }}</b><span>People coming</span></td>
+      <td class="key"><b>{{ $stats['guests_coming'] }}</b><span>Respondents</span></td>
       <td><b>{{ $stats['accepted'] }}</b><span>Yes replies</span></td>
       <td><b>{{ $stats['declined'] }}</b><span>No replies</span></td>
     </tr>

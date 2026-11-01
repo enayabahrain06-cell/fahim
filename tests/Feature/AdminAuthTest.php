@@ -182,3 +182,7 @@ it('lets an admin set a user to view-only but not themselves', function () {
     $this->actingAs($admin)->patch("/admin/users/{$admin->id}", ['name' => 'N', 'email' => $admin->email, 'role' => 'viewer'])->assertSessionHasErrors('users');
     expect($admin->fresh()->canEdit())->toBeTrue();
 });
+
+it('redirects the retired old domain to the app url', function () {
+    $this->get('http://t6.p7h.me/admin/login?x=1')->assertStatus(301)->assertRedirect(config('app.url').'/admin/login?x=1');
+});

@@ -1,5 +1,5 @@
 <section class="kpis" aria-label="Guest totals">
-  <div class="kpi yes"><b id="kComing">0</b><span>People coming</span></div>
+  <div class="kpi yes"><b id="kComing">0</b><span>Respondents</span></div>
   <div class="kpi no"><b id="kDeclined">0</b><span>Declined</span></div>
 </section>
 <div class="tools">

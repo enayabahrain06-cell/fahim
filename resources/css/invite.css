@@ -57,12 +57,19 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
 /* The art is 940×1672 and fills the screen like object-fit: cover, except that on a very tall, narrow screen it
    stops scaling once 680 px of its width is left, so the names (x 190–760) are never cut; the paper colour fills
    the rest. --s is the art's scale; the seal below uses it too. */
-.env-art, .seal-btn { --s: max(calc(100cqw / 940), min(calc(100cqh / 1672), calc(100cqw / 680))); }
+.env-art, .seal-btn, .env-ar { --s: max(calc(100cqw / 940), min(calc(100cqh / 1672), calc(100cqw / 680))); }
 .env-art {
   position: absolute; left: 50%; top: 50%; width: calc(940 * var(--s)); height: calc(1672 * var(--s)); max-width: none; display: block;
   transform: translate(-50%, -50%); transition: transform 1.2s var(--ease);
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
 }
+.env-ar {
+  position: absolute; z-index: 2; left: 50%; top: calc(50% - 546 * var(--s)); margin: 0; transform: translate(-50%, -50%);
+  font-family: "Amiri Quran", "Amiri", "Noto Naskh Arabic", serif; font-size: calc(42 * var(--s)); line-height: 1.4; white-space: nowrap;
+  color: #6e1f2a; pointer-events: none; unicode-bidi: isolate; text-rendering: optimizeLegibility; transition: opacity .4s ease;
+}
+.env-ar.tap { top: calc(50% + 604 * var(--s)); font-size: calc(40 * var(--s)); }
+.intro.open .env-ar { opacity: 0; }
 .intro.open .env-art { transform: translate(-50%, -50%) scale(1.08); }
 .lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .lines path { fill: none; stroke: var(--fold); stroke-width: 1.4; }

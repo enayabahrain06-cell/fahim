@@ -26,6 +26,8 @@ class DetailsRequest extends FormRequest
             'venue_address' => ['nullable', 'string', 'max:160'],
             'map_link' => ['nullable', 'string', 'max:600', 'url:https', 'starts_with:https://'],
             'rsvp_by' => ['nullable', 'string', 'max:60'],
+            'cover' => ['nullable', 'string', 'max:60'],
+            'cover_tap' => ['nullable', 'string', 'max:40'],
             'intro' => ['nullable', 'string', 'max:400'],
             'join_line' => ['nullable', 'string', 'max:120'],
             'verse' => ['nullable', 'string', 'max:300'],

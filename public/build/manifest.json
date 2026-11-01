@@ -5,7 +5,7 @@
     "isEntry": true
   },
   "resources/css/invite.css": {
-    "file": "assets/invite-DFm4Jwbe.css",
+    "file": "assets/invite-ByAfMqyA.css",
     "src": "resources/css/invite.css",
     "isEntry": true
   },
@@ -22,7 +22,7 @@
     "src": "resources/images/envelope-ribbon.png"
   },
   "resources/images/envelope.jpg": {
-    "file": "assets/envelope-C3svu4rK.jpg",
+    "file": "assets/envelope-Cy83wwhb.jpg",
     "src": "resources/images/envelope.jpg"
   },
   "resources/images/seal-rsvp-legacy.png": {
@@ -54,7 +54,7 @@
     "isEntry": true
   },
   "resources/js/invite.js": {
-    "file": "assets/invite-DYa9IOzn.js",
+    "file": "assets/invite-9EKuszQk.js",
     "name": "invite",
     "src": "resources/js/invite.js",
     "isEntry": true

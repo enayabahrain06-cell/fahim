@@ -22,6 +22,8 @@ class InvitationDetails
         'venue_address' => 'Hall No. 1',
         'map_link' => 'https://www.google.com/maps/search/?api=1&query=Adhari%20New%20Seasons%20Bahrain',
         'rsvp_by' => '15 November',
+        'cover' => 'دَعْوَةُ زَفَافٍ',
+        'cover_tap' => 'اضغط للفتح',
         'intro' => 'In a moment filled with joy and gratitude, we invite you to share in our happiness as we begin our new journey together.',
         'join_line' => 'Join us as we celebrate our nikah',
         'verse' => 'وَجَعَلَ بَيْنَكُم مَّوَدَّةً وَرَحْمَةً',

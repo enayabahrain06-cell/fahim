@@ -22,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->isProduction()) {
+            // Links (e.g. the shared WhatsApp link) must always use the real domain, even if the site is opened via another host.
+            URL::forceRootUrl(config('app.url'));
             URL::forceScheme('https');
         }
 

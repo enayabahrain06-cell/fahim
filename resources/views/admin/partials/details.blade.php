@@ -1,6 +1,8 @@
 <section class="card" aria-labelledby="detailsTitle">
   <p class="eyebrow" id="detailsTitle">Invitation details</p>
   <form id="detailsForm" class="form" autocomplete="off" novalidate>
+    <label class="wide">Arabic title on the envelope <small style="font-weight:400">(leave empty to hide it)</small><input name="cover" dir="rtl" lang="ar" maxlength="60" value="{{ $d['cover'] }}" style="font-size:1.2rem"></label>
+    <label class="wide">Arabic “tap to open” on the envelope <small style="font-weight:400">(leave empty to hide it)</small><input name="cover_tap" dir="rtl" lang="ar" maxlength="40" value="{{ $d['cover_tap'] }}" style="font-size:1.2rem"></label>
     <label class="wide">Invitation text<textarea name="intro" rows="3" maxlength="400">{{ $d['intro'] }}</textarea></label>
     <label class="wide">Join line<input name="join_line" maxlength="120" value="{{ $d['join_line'] }}"></label>
     <label>Groom name<input name="groom" required maxlength="60" value="{{ $d['groom'] }}"></label>

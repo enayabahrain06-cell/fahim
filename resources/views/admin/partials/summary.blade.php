@@ -1,6 +1,6 @@
 <section class="hero-card" aria-label="Summary">
   <div>
-    <p class="eyebrow">People coming</p>
+    <p class="eyebrow">Respondents</p>
     <p class="big" id="guestsComing">0</p>
     <p id="heroNote">No replies yet</p>
   </div>
