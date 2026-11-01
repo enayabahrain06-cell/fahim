@@ -11,6 +11,20 @@ installable dashboard for the couple. Laravel 12 + SQLite, Blade, plain CSS and 
 | Dashboard | `/admin` (installable as a phone app) |
 | First-run setup | `/admin/setup`, only until the admin exists |
 
+## Screenshots
+
+What a guest sees on a phone (taken from a copy with demo data):
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/1-envelope.jpg" width="170" alt="The sealed envelope with the wax seal"><br><sub>1. Envelope, tap the seal</sub></td>
+    <td align="center"><img src="docs/screenshots/2-invitation.jpg" width="170" alt="The invitation page"><br><sub>2. The invitation</sub></td>
+    <td align="center"><img src="docs/screenshots/3-rsvp-card.jpg" width="170" alt="The RSVP card"><br><sub>3. RSVP card</sub></td>
+    <td align="center"><img src="docs/screenshots/4-rsvp-form.jpg" width="170" alt="The RSVP form filled in"><br><sub>4. Name and guests</sub></td>
+    <td align="center"><img src="docs/screenshots/5-rsvp-sent.jpg" width="170" alt="The thank-you message after sending"><br><sub>5. Reply sent</sub></td>
+  </tr>
+</table>
+
 ## Run it locally
 
 Requirements: PHP 8.2+ with `pdo_sqlite`, `gd`, `mbstring`, `fileinfo`; Composer; Node 18+ (only to rebuild assets).
