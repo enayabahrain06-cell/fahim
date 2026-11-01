@@ -186,3 +186,16 @@ it('lets an admin set a user to view-only but not themselves', function () {
 it('redirects the retired old domain to the app url', function () {
     $this->get('http://t6.p7h.me/admin/login?x=1')->assertStatus(301)->assertRedirect(config('app.url').'/admin/login?x=1');
 });
+
+it('logs sign-ins and admin changes and shows them in the Logs tab', function () {
+    $me = \App\Models\User::factory()->create(['username' => 'boss']);
+
+    $this->post('/admin/login', ['email' => 'nobody@example.com', 'password' => 'wrong-password']);
+    $this->actingAs($me)->post('/admin/users', [
+        'name' => 'Log Target', 'email' => 'target@example.com', 'role' => 'viewer',
+        'password' => 'a-long-password', 'password_confirmation' => 'a-long-password',
+    ]);
+
+    $this->actingAs($me)->get('/admin/users?tab=logs')->assertOk()
+        ->assertSee('Failed sign-in')->assertSee('Added a user')->assertSee('target@example.com (viewer)')->assertSee('boss');
+});

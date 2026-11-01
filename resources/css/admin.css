@@ -299,7 +299,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .wa-card-text span { font-size: 13px; color: #54656f; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .wa-card-text small { font-size: 12px; color: #667781; }
 .wa-bubble p { margin: 6px 6px 0; word-break: break-word; }
-.wa-bubble u { color: #027eb5; }
+.wa-bubble u, .wa-bubble a { color: #027eb5; text-decoration: underline; }
 .wa-bubble time { display: block; text-align: right; margin: 2px 6px 2px; font-size: 11px; color: #667781; }
 .share { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; }
 .share legend { font-size: .8rem; color: var(--soft); padding: 0; margin-bottom: 6px; }

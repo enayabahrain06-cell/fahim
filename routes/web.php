@@ -34,7 +34,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AuthController::class, 'show'])->name('login');
     Route::post('login', [AuthController::class, 'login'])->middleware('throttle:login');
 
-    Route::middleware('auth')->group(function () {
+    Route::middleware(['auth', 'log.admin'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', DashboardController::class)->name('dashboard');
         Route::get('preview', [InvitationController::class, 'preview'])->name('preview');
@@ -55,6 +55,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('users', [UserController::class, 'store'])->name('users.store')->middleware('can.edit');
         Route::patch('users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('can.edit');
         Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('can.edit');
+        Route::delete('logs/activity', [UserController::class, 'clearActivity'])->name('logs.activity.clear')->middleware('can.edit');
+        Route::delete('logs/errors', [UserController::class, 'clearErrors'])->name('logs.errors.clear')->middleware('can.edit');
         Route::get('export/csv', [ExportController::class, 'csv'])->name('export.csv');
     });
 });

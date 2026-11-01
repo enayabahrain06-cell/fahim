@@ -13,6 +13,9 @@ return [
     // The short, readable address of the shared invitation link (https://yourdomain/<slug>).
     'share_slug' => 'join',
 
+    // The server error log shown (and clearable) in Users > Logs.
+    'error_log_path' => storage_path('logs/laravel.log'),
+
     // Photo slots on the invitation.
     'photo_slots' => ['couple', 'venue'],
 

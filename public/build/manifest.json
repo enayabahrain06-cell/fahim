@@ -1,11 +1,11 @@
 {
   "resources/css/admin.css": {
-    "file": "assets/admin-CwSSkNXc.css",
+    "file": "assets/admin-DH2BXTYm.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
   "resources/css/invite.css": {
-    "file": "assets/invite-ByAfMqyA.css",
+    "file": "assets/invite-CjZa48NV.css",
     "src": "resources/css/invite.css",
     "isEntry": true
   },
@@ -42,7 +42,7 @@
     "src": "resources/images/venue-default.jpg"
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-Dt9cz5pe.js",
+    "file": "assets/admin-BWx4u_L2.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true

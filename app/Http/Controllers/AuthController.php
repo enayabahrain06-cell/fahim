@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Models\ActivityLog;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,16 +31,19 @@ class AuthController extends Controller
         $field = str_contains($login, '@') ? 'email' : 'username';
 
         if (! Auth::attempt([$field => $login, 'password' => $request->input('password')], $request->boolean('remember'))) {
+            ActivityLog::record('Failed sign-in', $login, null, $login);
             throw ValidationException::withMessages(['email' => 'That username or email and password don’t match.']);
         }
 
         $request->session()->regenerate();
+        ActivityLog::record('Signed in', null, $request->user());
 
         return redirect()->intended(route('admin.dashboard'));
     }
 
     public function logout(Request $request): RedirectResponse
     {
+        ActivityLog::record('Signed out', null, $request->user());
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

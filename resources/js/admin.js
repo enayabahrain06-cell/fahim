@@ -620,7 +620,7 @@ $('detailsForm').addEventListener('submit', e => { e.preventDefault(); saveDetai
 /* ---------- edit the WhatsApp message in place ---------- */
 function renderWaMessage() {
   const p = $('waMsg'); if (!p) return;
-  const u = el('u', { textContent: $('sharedUrl').value });
+  const u = el('a', { href: $('sharedUrl').value, target: '_blank', rel: 'noopener noreferrer', textContent: $('sharedUrl').value });
   p.replaceChildren();
   details.share_message_text.split('\n').forEach((line, i) => { if (i) p.append(el('br')); p.append(line); });
   p.append(el('br'), u);

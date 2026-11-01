@@ -22,7 +22,7 @@
           @if ($pvDesc !== '')<span>{{ $pvDesc }}</span>@endif
         </div>
       </div>
-      <p id="waMsg">{!! nl2br(e($d['share_message_text'])) !!}<br><u>{{ $sharedUrl }}</u></p>
+      <p id="waMsg">{!! nl2br(e($d['share_message_text'])) !!}<br><a href="{{ $sharedUrl }}" target="_blank" rel="noopener noreferrer">{{ $sharedUrl }}</a></p>
       <time>3:56 PM ✓✓</time>
     </div>
   </div>

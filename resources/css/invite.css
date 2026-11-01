@@ -316,6 +316,7 @@ dialog .sub { text-align: center; color: var(--ink); margin: 2px 0 22px; font-st
   border-bottom: 1px solid var(--accent-soft); padding: 8px 2px; margin-bottom: 20px; border-radius: 0;
 }
 .in:focus { outline: none; border-bottom-color: var(--accent); }
+.in::placeholder { color: var(--ink-soft); opacity: .55; }
 .radios { display: grid; gap: 4px; margin: 0 0 20px; border: 0; padding: 0; }
 .radio { display: flex; align-items: center; gap: 12px; cursor: pointer; min-height: 44px; }
 .radio input { appearance: none; -webkit-appearance: none; width: 22px; height: 22px; border: 1px solid var(--accent); border-radius: 50%; margin: 0; display: grid; place-items: center; flex: none; }

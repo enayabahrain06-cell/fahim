@@ -11,7 +11,7 @@
 
     <div id="attendBlock" hidden>
       <label class="fl" for="yourName">Your name</label>
-      <input class="in" id="yourName" type="text" maxlength="80" autocomplete="name" required>
+      <input class="in" id="yourName" type="text" maxlength="80" autocomplete="name" placeholder="e.g. Ali and his family" required>
       <div class="counter" id="counter">
         <span class="fl">Number of guests</span>
         <div class="stepper">
