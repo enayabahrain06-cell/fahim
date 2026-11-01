@@ -22,7 +22,7 @@ it('adds one guest with a unique token and a digits-only phone', function () {
 it('defaults a new guest to one seat and rejects bad input', function () {
     $this->postJson('/admin/invitees', ['name' => 'Rahul Nair'])->assertCreated()->assertJsonPath('invitee.seats', 1);
     $this->postJson('/admin/invitees', ['name' => ''])->assertStatus(422)->assertJson(['ok' => false]);
-    $this->postJson('/admin/invitees', ['name' => 'X', 'seats' => 21])->assertStatus(422);
+    $this->postJson('/admin/invitees', ['name' => 'X', 'seats' => 1000])->assertStatus(422);
     $this->postJson('/admin/invitees', ['name' => 'X', 'phone' => '12'])->assertStatus(422);
     expect(Invitee::count())->toBe(1);
 });
@@ -34,7 +34,7 @@ it('bulk-adds lines, reporting the bad ones without saving them', function () {
         'Rahul Nair',
         '97355556666, Shameer K, 5',    // columns out of order: "Shameer K" is not a number
         ', 2',                          // no name
-        'Big Family, 45',               // too many seats
+        'Big Family, 0',                // zero seats
         'Odd One, hello',               // not a number
         '',
         'Aisha Kareem, 97312345678, 1',
@@ -61,7 +61,7 @@ it('bulk-adds lines, reporting the bad ones without saving them', function () {
     expect($res['added'])->toBe(Invitee::count())
         ->and($skipped->keys()->all())->toBe([4, 5, 6, 7])
         ->and($skipped[5]['reason'])->toContain('name is missing')
-        ->and($skipped[6]['reason'])->toContain('between 1 and 20')
+        ->and($skipped[6]['reason'])->toContain('between 1 and 999')
         ->and($skipped[7]['reason'])->toContain('not a number');
 });
 

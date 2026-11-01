@@ -1,7 +1,7 @@
 /* Couple's dashboard: an installable, app-like screen set with a top bar and a bottom tab bar. */
 :root {
-  --bg: #F7F2EC; --card: #FDFAF6; --ink: #3A2A2A; --soft: #7D6B68; --line: #E9DCD4;
-  --sage: #A4161A; --olive: #7A1016; --sage-soft: #F3D9D7; --rose: #B5432F; --rose-soft: #F6DED6;
+  --bg: #F8F4EC; --card: #FFFDF8; --ink: #3A2A2A; --soft: #7D6B68; --line: #E6DCCE;
+  --sage: #A4161A; --olive: #781D2B; --sage-soft: #F3D9D7; --rose: #B5432F; --rose-soft: #F6DED6;
   --cream: #FAF6F0; --gold: #C9A55A;
   --ease: cubic-bezier(.2,.7,.3,1);
   --top: env(safe-area-inset-top, 0px); --bottom: env(safe-area-inset-bottom, 0px);
@@ -93,7 +93,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ring .lbl b { display: block; font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.9rem; font-weight: 600; line-height: 1; }
 .ring .lbl span { font-size: .6rem; letter-spacing: .08em; text-transform: uppercase; color: #F3D9D7; }
 
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 12px 0; }
 .stat { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px; text-decoration: none; transition: transform .2s ease; }
 .stat b { display: block; font-family: "Cormorant Garamond", Georgia, serif; font-size: 2.1rem; font-weight: 600; line-height: 1.05; font-variant-numeric: lining-nums tabular-nums; }
 .stat span { font-size: .78rem; color: var(--soft); }
@@ -130,9 +130,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .row .private-note { grid-column: 1 / -1; font-size: .82rem; font-style: italic; color: var(--soft); }
 .row .acts { grid-column: 1 / -1; display: flex; gap: 6px; margin-top: 8px; }
 .row .acts > * { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; font-weight: 400; font-size: .82rem; padding: 6px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); cursor: pointer; text-decoration: none; }
-.row .acts .wa { flex: 1; background: var(--olive); border-color: var(--olive); color: var(--cream); }
-.row .acts .wa svg { width: 16px; height: 16px; }
-.row .acts .more { width: 44px; padding: 0; font-size: 1.2rem; letter-spacing: .05em; }
+.row .acts .more { width: 100%; padding: 0; font-size: 1.2rem; letter-spacing: .05em; }
+.pager { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin: 16px 0 4px; }
+.pager button { min-width: 40px; min-height: 40px; padding: 0 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink, inherit); border-radius: 12px; font: inherit; font-size: .9rem; cursor: pointer; }
+.pager button[aria-current="page"] { background: var(--olive); color: var(--cream); border-color: var(--olive); }
+.pager button:disabled:not([aria-current]) { opacity: .4; cursor: default; }
+.pager .gap { color: var(--soft); }
 .empty { text-align: center; color: var(--soft); padding: 40px 0; }
 .row.new { opacity: 0; transform: translateY(10px); animation: rise .5s var(--ease) forwards; }
 @keyframes rise { to { opacity: 1; transform: none; } }
@@ -176,6 +179,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .slot { display: flex; flex-direction: column; align-items: stretch; gap: 8px; text-align: center; }
 .thumb { width: 100%; aspect-ratio: 1; border-radius: 16px; background: var(--bg); border: 1px dashed var(--line); display: grid; place-items: center; overflow: hidden; color: var(--soft); font-size: .8rem; }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.slot .dl { display: inline-flex; align-items: center; justify-content: center; min-height: 40px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: inherit; font-size: .85rem; text-decoration: none; }
 .slot-name { margin: 0; font-size: .85rem; color: var(--soft); }
 .upl { font-size: .85rem; min-height: 42px; padding: 8px; }
 .upl:focus-within { outline: 2px solid var(--sage); outline-offset: 2px; }
@@ -275,3 +279,23 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .hero-card::before, .bump, .icon-btn.spin svg { animation: none; }
 }
 @media (max-width: 400px) { .hero-card .big { font-size: 3.4rem; } .ring { width: 96px; height: 96px; } .appbar h1 { font-size: 1.5rem; } }
+
+/* WhatsApp message preview on the overview */
+.wa-preview { background: #efeae2; border-radius: 14px; padding: 14px 12px; margin-bottom: 14px; }
+.wa-bubble { background: #d9fdd3; border-radius: 10px 10px 10px 10px; padding: 4px; max-width: 320px; margin-left: auto; box-shadow: 0 1px 1px rgba(0,0,0,.13); color: #111b21; font: 14px/1.4 system-ui, sans-serif; }
+.wa-card { background: #c6f2bd; border-radius: 7px; overflow: hidden; }
+.wa-card img { display: block; width: 100%; aspect-ratio: 1.91 / 1; object-fit: cover; background: #f8f4ec; }
+.wa-card-text { padding: 8px 10px 9px; display: grid; gap: 2px; }
+.wa-card-text b { font-size: 14px; }
+.wa-card-text span { font-size: 13px; color: #54656f; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.wa-card-text small { font-size: 12px; color: #667781; }
+.wa-bubble p { margin: 6px 6px 0; word-break: break-word; }
+.wa-bubble u { color: #027eb5; }
+.wa-bubble time { display: block; text-align: right; margin: 2px 6px 2px; font-size: 11px; color: #667781; }
+.share { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; }
+.share legend { font-size: .8rem; color: var(--soft); padding: 0; margin-bottom: 6px; }
+
+.slot .rm:disabled { opacity: .4; cursor: default; }
+.slot .hd { min-height: 40px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); color: inherit; font: inherit; font-size: .85rem; cursor: pointer; }
+.slot .hd:disabled { opacity: .4; cursor: default; }
+.slot.is-hidden .thumb img { opacity: .25; filter: grayscale(1); }

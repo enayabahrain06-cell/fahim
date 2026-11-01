@@ -85,7 +85,7 @@ it('downloads a calendar event with the right UTC start and 4 hours long', funct
         ->and($ics)->toContain("BEGIN:VEVENT\r\n")
         ->and($ics)->toContain("DTSTART:20261119T163000Z\r\n")   // 7:30 PM in Bahrain (+03:00)
         ->and($ics)->toContain("DTEND:20261119T203000Z\r\n")
-        ->and($ics)->toContain('SUMMARY:Wedding of Fahim & Marwa')
+        ->and($ics)->toContain('SUMMARY:Fahim & Marwa Wedding')
         ->and($ics)->toContain('LOCATION:Adhari New Seasons\, Hall No. 1')
         ->and($ics)->toContain("END:VEVENT\r\nEND:VCALENDAR\r\n");
 

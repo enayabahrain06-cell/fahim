@@ -13,6 +13,7 @@
   --fold: rgba(146,125,114,.32);
   --shadow: rgba(80,48,44,.16); --shadow-strong: rgba(80,40,40,.26); --shadow-band: rgba(120,29,43,.28);
   --scrim: rgba(52,30,32,.5);
+  color-scheme: only light; /* the invitation always shows its own light colours, even when the phone is in dark mode */
 
   /* Artwork (garland, sprigs, RSVP seal) */
   --leaf-1: var(--burgundy); --leaf-2: #93414C; --leaf-3: var(--rose); --leaf-4: var(--rose-soft); --leaf-5: #EBCFCC;
@@ -23,20 +24,6 @@
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --paper: #221A19; --paper-2: #1A1312; --ink: #EFE4DC; --ink-soft: #BCA89E;
-    --accent: var(--rose-soft); --accent-soft: rgba(217,154,156,.35); --line: #3E302D; --err: #EE8E7B;
-    --card: #2B211F; --gold-ink: var(--gold);
-  }
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --paper: #221A19; --paper-2: #1A1312; --ink: #EFE4DC; --ink-soft: #BCA89E;
-  --accent: var(--rose-soft); --accent-soft: rgba(217,154,156,.35); --line: #3E302D; --err: #EE8E7B;
-    --card: #2B211F; --gold-ink: var(--gold);
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 *, *::before, *::after { box-sizing: border-box; }
@@ -62,7 +49,7 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
 /* A photographed envelope (resources/images/envelope.jpg) with the names, seal and "Tap to open" in the art. */
 .intro {
   position: fixed; top: 0; bottom: 0; left: 50%; width: min(100%, 440px); transform: translateX(-50%);
-  z-index: 50; overflow: hidden; background: var(--paper);
+  z-index: 50; overflow: hidden; background: linear-gradient(180deg, #f7f2e7, #f4eee1 50%, #ede7db);
   transition: opacity .45s ease .9s, visibility 0s linear 1.4s;
   cursor: pointer;
 }
@@ -74,6 +61,7 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
 .env-art {
   position: absolute; left: 50%; top: 50%; width: calc(940 * var(--s)); height: calc(1672 * var(--s)); max-width: none; display: block;
   transform: translate(-50%, -50%); transition: transform 1.2s var(--ease);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(180deg, transparent, #000 6%, #000 94%, transparent);
 }
 .intro.open .env-art { transform: translate(-50%, -50%) scale(1.08); }
 .lines { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -110,14 +98,19 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
   position: relative; min-height: calc(100svh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   overflow: hidden; background: var(--paper);
 }
+.hero .grain { -webkit-mask-image: linear-gradient(180deg, #000 75%, transparent); mask-image: linear-gradient(180deg, #000 75%, transparent); }
 .garland { position: absolute; top: -6px; left: -6%; width: 112%; pointer-events: none; }
 .garland svg, .sprig svg { width: 100%; display: block; }
-.sprig { position: absolute; bottom: -4px; width: 48%; pointer-events: none; }
+.sprig { position: absolute; bottom: -4px; width: 48%; pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent); mask-image: linear-gradient(180deg, #000 72%, transparent); }
 .sprig.l { left: -4%; }
 .sprig.r { right: -4%; transform: scaleX(-1); }
-.hero-in { position: relative; text-align: center; padding: 120px 26px 150px; z-index: 1; }
+.hero-in { position: relative; text-align: center; padding: 120px 26px 215px; z-index: 1; }
 .wd { font-size: .85rem; color: var(--ink); margin: 0 0 14px; line-height: 1.8; letter-spacing: .3em; text-transform: uppercase; }
 .names-line .amp { font-style: italic; text-transform: none; letter-spacing: 0; color: var(--accent); }
+.fx { position: fixed; top: 0; bottom: 0; left: 50%; width: min(440px, 100%); transform: translateX(-50%); overflow: hidden; pointer-events: none; z-index: 3; }
+.fx { transition: opacity 1s var(--ease); }
+.fx.calm { opacity: .22; }
 .spark { position: absolute; bottom: -10px; width: 4px; height: 4px; border-radius: 50%; background: var(--gold); opacity: 0; pointer-events: none; box-shadow: 0 0 6px rgba(198,166,107,.5); }
 
 /* ================= SECTIONS ================= */
@@ -127,23 +120,26 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
 .orn { display: block; margin: 8px auto 26px; width: 150px; height: 14px; }
 .orn line { stroke: var(--accent); fill: none; stroke-width: 1; }
 .orn .d { fill: var(--gold); }
-.basmala { font-family: "Aref Ruqaa", serif; font-size: 1.5rem; color: var(--accent); margin: 0 0 18px; }
+.basmala { font-family: "Amiri Quran", "Amiri", "Noto Naskh Arabic", serif; font-size: 2rem; line-height: 2.1; color: var(--accent); margin: 0 0 14px; padding: .15em 0; unicode-bidi: isolate; font-feature-settings: "liga", "calt", "mark", "mkmk"; text-rendering: optimizeLegibility; }
 .lead { margin: 0; color: var(--ink); }
 .warm { color: var(--accent); font-style: italic; font-size: 1.35rem; margin: 14px 0 16px; }
 .couple-art { width: min(360px, 96%); margin: 6px auto 0; }
 .couple-art img { width: 100%; height: auto; display: block;
   -webkit-mask-image: radial-gradient(farthest-side, #000 90%, transparent 100%); mask-image: radial-gradient(farthest-side, #000 90%, transparent 100%); }
-@media (prefers-color-scheme: light) { .couple-art img { mix-blend-mode: multiply; } }
-.couple-art img.uploaded { mix-blend-mode: normal; aspect-ratio: 1; object-fit: cover; border-radius: 50%;
-  -webkit-mask-image: radial-gradient(closest-side, #000 82%, transparent 100%); mask-image: radial-gradient(closest-side, #000 82%, transparent 100%); }
+.couple-art img { mix-blend-mode: multiply; }
+.couple-art img.uploaded { mix-blend-mode: multiply; aspect-ratio: 1; object-fit: contain; border-radius: 0;
+  /* Only the very edge fades into the page, so the whole picture (flowers included) stays visible. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent), linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 9%, #000 91%, transparent), linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-composite: source-in; mask-composite: intersect; }
 .person { margin: 18px 0 0; }
 .person + .orn + .person { margin-top: 0; }
 .couple { color: var(--ink); font-size: 2.1rem; font-weight: 500; text-transform: uppercase; letter-spacing: .14em; margin: 0; line-height: 1.1; }
-.arname { font-family: "Aref Ruqaa", serif; font-size: 2.1rem; color: var(--accent); margin: 0; line-height: 1.4; }
+.arname { font-family: "Amiri", "Noto Naskh Arabic", serif; font-weight: 700; font-size: 2.1rem; color: var(--accent); margin: 0; line-height: 1.8; unicode-bidi: isolate; text-rendering: optimizeLegibility; }
 .parents { margin: 2px 0 0; color: var(--ink); }
 .parents small { display: block; letter-spacing: .2em; font-size: .85rem; }
 .when { margin-top: 26px; }
-.verse { font-family: "Aref Ruqaa", serif; font-size: 1.55rem; color: var(--accent); margin: 30px 0 0; line-height: 1.7; }
+.verse { font-family: "Amiri Quran", "Amiri", "Noto Naskh Arabic", serif; font-size: 1.5rem; color: var(--accent); margin: 30px auto 0; max-width: 21em; line-height: 2.2; unicode-bidi: isolate; font-feature-settings: "liga", "calt", "mark", "mkmk"; text-rendering: optimizeLegibility; }
 .note { display: inline-block; margin-top: 18px; padding: 6px 16px; border: 1px solid var(--accent-soft); border-radius: 30px; font-size: .95rem; color: var(--ink); }
 
 .cd { display: flex; justify-content: center; align-items: flex-start; gap: 6px; font-variant-numeric: lining-nums tabular-nums; }
@@ -161,7 +157,7 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
 
 /* Venue: an Arabic heading over a small gold kicker, then one card with the hall photo, date and time,
    Directions / Save date, the calendar file and the Google map. */
-.ar-kicker { font-family: "Aref Ruqaa", serif; font-size: 1.9rem; line-height: 1.3; color: var(--accent); margin: 0; }
+.ar-kicker { font-family: "Amiri", "Noto Naskh Arabic", serif; font-weight: 700; font-size: 1.8rem; line-height: 1.8; unicode-bidi: isolate; text-rendering: optimizeLegibility; color: var(--accent); margin: 0; }
 .kicker { margin: 2px 0 26px; font-size: .9rem; font-weight: 500; letter-spacing: .32em; text-transform: uppercase; color: var(--gold-ink); }
 .venue-card {
   background: var(--card); border: 1px solid var(--line); border-radius: 22px; overflow: hidden; text-align: center;
@@ -173,13 +169,28 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
   --hero-pad: clamp(14px, 6cqw, 26px);
   position: relative; container-type: inline-size; aspect-ratio: 2 / 1; overflow: hidden; background: var(--paper-2);
 }
+.venue-hero.no-photo { background: var(--band); }
+.venue-hero.no-photo::after { display: none; }
 .venue-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 32%; display: block; }
-/* A soft, low glow behind the words instead of a dark band, so the florals at both sides stay clear. */
+/* Motion: the photo drifts slowly (Ken Burns); on hover/touch the card lifts and the photo zooms in. */
+@media (prefers-reduced-motion: no-preference) {
+  .venue-card { transition: transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .5s ease; }
+  .venue-hero img { transform-origin: 50% 40%; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); animation: venue-drift 18s ease-in-out infinite alternate; }
+  .venue-hero .vname, .venue-hero .vaddr { transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+  @media (hover: hover) {
+    .venue-card:hover { transform: translateY(-4px); box-shadow: 0 22px 46px var(--shadow); }
+    .venue-card:hover .venue-hero img { animation-play-state: paused; transform: scale(1.1); }
+    .venue-card:hover .venue-cap .vname { transform: translateY(-3px); }
+  }
+  .venue-card:active .venue-hero img { animation-play-state: paused; transform: scale(1.06); }
+}
+@keyframes venue-drift { from { transform: scale(1) translate(0, 0); } to { transform: scale(1.08) translate(-1.5%, -1%); } }
+/* A gradient that deepens only toward the bottom, behind the words, so the photograph stays bright above. */
 .venue-hero::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 76%, rgba(52,20,26,.52), rgba(52,20,26,.4) 60%, rgba(52,20,26,0) 100%),
-    linear-gradient(180deg, rgba(52,20,26,0) 45%, rgba(52,20,26,.22) 100%);
+    linear-gradient(180deg, rgba(52,20,26,0) 22%, rgba(52,20,26,.5) 52%, rgba(52,20,26,.78) 100%),
+    radial-gradient(ellipse 85% 55% at 50% 78%, rgba(52,20,26,.3), rgba(52,20,26,0) 100%);
 }
 .venue-cap {
   position: absolute; inset: 50% 0 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -201,8 +212,6 @@ main { max-width: 440px; margin: 0 auto; background: var(--paper); min-height: 1
 .venue-btns { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
 .venue-btns .btn { width: 100%; padding: 12px 8px; gap: 8px; font-size: .9rem; letter-spacing: .14em; text-transform: uppercase; }
 @media (max-width: 359px) { .venue-btns { grid-template-columns: 1fr; } } /* too narrow for two side by side */
-.ics-link { display: inline-block; margin-top: 14px; color: var(--ink); font-size: 1rem; text-underline-offset: 3px; text-decoration-color: var(--accent-soft); }
-.venue-note { margin: 6px 0 0; font-size: .9rem; line-height: 1.4; color: var(--ink-soft); }
 .venue-map { margin-top: 18px; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 16px; border: 1px solid var(--gold); background: var(--paper-2); }
 .venue-map iframe { width: 100%; height: 100%; display: block; border: 0; }
 .btn {
@@ -232,19 +241,44 @@ main .sec.olive-sec { background: var(--band); color: var(--cream); border-radiu
 .reply-by svg { width: 18px; height: 18px; flex: none; color: var(--gold); }
 .reply-by b { color: var(--gold); font-weight: 600; white-space: nowrap; }
 main .sec.olive-tail { background: var(--band); color: var(--cream); padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+/* Envelope — built from the first page's own paper art (envelope-mini.jpg, ribbon included), cut into
+   inside < card < pocket < flap < seal. Flap/pocket share one image so the ribbon runs unbroken across both. */
 .mini-env {
-  position: relative; display: block; width: min(300px, 86%); aspect-ratio: 3 / 2.1; margin: 26px auto 0;
-  border: 0; padding: 0; cursor: pointer; border-radius: 6px; overflow: hidden; background: var(--env);
-  box-shadow: 0 12px 26px var(--shadow-strong);
+  --env-seal-w: 29%;  --env-inner: #e7dcc7;
+  position: relative; display: block; width: min(330px, 90%); aspect-ratio: 940 / 710; margin: 30px auto 0;
+  border: 0; padding: 0; cursor: pointer; background: none; border-radius: 8px; overflow: visible;
 }
-.mini-env .lines path { stroke-width: 1; }
-.mini-env .ms { position: absolute; left: 50%; top: 52%; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%); filter: drop-shadow(0 6px 10px var(--shadow-strong)); transition: transform .3s ease; }
+.env-defs { position: absolute; }
+.mini-env > * { position: absolute; display: block; pointer-events: none; }
+.mini-env .env-tex { position: absolute; inset: 0; background: var(--env-art) center / 100% 100% no-repeat; }
+.mini-env .env-inside { inset: 0; z-index: 0; border-radius: 8px; background: linear-gradient(180deg, #d9ccb3, var(--env-inner) 55%); box-shadow: 0 1px 2px rgba(60,40,15,.35), 0 8px 14px rgba(40,30,10,.22), 0 20px 34px var(--shadow-strong); }
+.mini-env .env-pocket { inset: 0; z-index: 2; border-radius: 8px; overflow: hidden; clip-path: url(#envPocket); }
+.mini-env .env-pocket .env-tex { box-shadow: inset 0 -14px 24px rgba(120,95,50,.12); }
+.mini-env .env-seams { position: absolute; inset: 0; width: 100%; height: 100%; }
+.mini-env .env-seams path { fill: none; stroke: rgba(120,95,50,.28); stroke-width: 1.2; vector-effect: non-scaling-stroke; }
+.mini-env .env-flap { left: 0; right: 0; top: 0; height: 54%; z-index: 4; transform-origin: 50% 0; filter: drop-shadow(0 5px 5px rgba(80,55,25,.35)) drop-shadow(0 0 1px rgba(150,115,60,.55)); }
+.mini-env .env-flap > span { position: absolute; inset: 0; clip-path: url(#envFlap); }
+.mini-env .env-flap-out .env-tex { background-size: 100% 185.2%; background-position: top; }
+.mini-env .env-flap-out { backface-visibility: hidden; }
+.mini-env .env-ribbon { z-index: 5; left: 44.47%; top: 0; width: 11.06%; height: 100%; filter: drop-shadow(1.5px 2px 1.5px rgba(70,45,15,.32)); transform-origin: 50% 0; }
+.mini-env .env-tex::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.38), rgba(255,255,255,0) 42%, rgba(110,80,40,.12)); }
+.mini-env .ms { z-index: 6; filter: drop-shadow(0 6px 7px rgba(60,20,20,.4)); left: 49.7%; top: 48.6%; width: var(--env-seal-w); aspect-ratio: 1; transform: translate(-50%, -50%); transition: transform .3s ease; }
 .mini-env:hover .ms { transform: translate(-50%, -50%) scale(1.06); }
-.mini-env .ms svg { width: 100%; height: 100%; display: block; }
+.mini-env .ms img { width: 100%; height: 100%; display: block; }
+.mini-env { --rx: 0deg; --ry: 0deg; transform-origin: 50% 60%; transform: perspective(700px) rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .25s ease-out, box-shadow .25s; touch-action: manipulation; }
+.mini-env.tilting { transition: transform .06s linear; }
+.mini-env.tilting .paper { box-shadow: 0 18px 34px var(--shadow-strong), inset 0 0 0 1px rgba(255,255,255,.5); }
+.mini-env .sheen { z-index: 7; inset: 0; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity .25s; background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,.28), transparent 55%); }
+.mini-env.tilting .sheen { opacity: 1; }
+.mini-env .ms { transition: transform .2s ease; }
+.mini-env.tilting .ms { transform: translate(calc(-50% + var(--px, 0px)), calc(-50% + var(--py, 0px))) scale(1.06); }
+.mini-env:active .ms, .mini-env.pressed .ms { transform: translate(-50%, -50%) scale(.9); }
+@media (prefers-reduced-motion: reduce) { .mini-env, .mini-env .ms { transition: none; } }
 .open-hint { margin: 16px 0 0; font-size: 1.2rem; font-style: italic; }
 .open-hint svg { display: block; margin: 0 auto 2px; width: 16px; height: 10px; }
 .farewell { font-size: 2.1rem; font-style: italic; margin: 0; }
-.sign { letter-spacing: .3em; text-transform: uppercase; font-size: .9rem; margin: 6px 0 0; opacity: .85; }
+.honor { font-family: "Amiri", "Noto Naskh Arabic", serif; font-weight: 700; font-size: 1.8rem; line-height: 1.9; unicode-bidi: isolate; text-rendering: optimizeLegibility; color: var(--cream); margin: 20px 0 0; }
+.sign { letter-spacing: .3em; text-transform: uppercase; font-size: .9rem; margin: 18px 0 0; opacity: .85; }
 
 /* ================= RSVP DIALOG (a bottom sheet on phones) ================= */
 dialog {
@@ -313,18 +347,28 @@ body.private { min-height: 100svh; display: grid; place-items: center; padding: 
   .seal-btn img { animation: breathe 3s ease-in-out infinite; }
   .seal-btn::after { animation: halo 3s ease-out infinite; }
   .open-hint svg { animation: nudge 1.8s ease-in-out infinite; }
+  .reply-by b {
+    background: linear-gradient(100deg, var(--gold) 0 42%, #fff3cf 50%, var(--gold) 58% 100%) 150% 0 / 260% 100% no-repeat var(--gold);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: date-shimmer 3.4s ease-in-out infinite;
+  }
+  .reply-by svg { animation: date-pulse 3.4s ease-in-out infinite; }
+  .mini-env .ms::after { content: ""; position: absolute; inset: -4%; border-radius: 50%; border: 2px solid rgba(255,253,248,.75); animation: seal-ring 2.2s ease-out infinite; }
   .spark { animation: drift linear infinite; }
   .mini-env.nudge { animation: tapme 1.4s ease-in-out 4; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .intro, .env-art, .glow, .seal-btn, .music-wrap { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .intro, .env-tex, .glow, .seal-btn, .music-wrap { transition-duration: .01s !important; transition-delay: 0s !important; }
   .reveal { opacity: 1; transform: none; transition: none; }
   .spark { display: none; }
   html { scroll-behavior: auto; }
   dialog[open] { animation: none; }
 }
+@keyframes arch-fill { from { background-size: 100% 0%; } to { background-size: 100% 100%; } }
 @keyframes breathe { 50% { transform: scale(1.045); } }
 @keyframes halo { 0% { transform: scale(.96); opacity: 0; } 20% { opacity: .75; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes seal-ring { 0% { transform: scale(.92); opacity: .85; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes date-shimmer { 0%, 25% { background-position: 150% 0; } 75%, 100% { background-position: -50% 0; } }
+@keyframes date-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.18); } }
 @keyframes tapme { 50% { transform: scale(1.05); } }
 @keyframes nudge { 50% { transform: translateY(-4px); } }
 @keyframes drift { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: .8; } 100% { transform: translateY(-80vh); opacity: 0; } }
@@ -355,8 +399,23 @@ body.private { min-height: 100svh; display: grid; place-items: center; padding: 
   .reveal .orn .d { transform-box: fill-box; transform-origin: center; transform: scale(0) rotate(-90deg); transition: transform .7s var(--ease) .3s; }
   .reveal.on .orn .d { transform: none; }
 
+  /* The burgundy arch fills in from the bottom first, then its content follows. */
+  main .sec.olive-sec.reveal { opacity: 1; transform: none; background: linear-gradient(var(--band), var(--band)) 50% 100% / 100% 0% no-repeat; transition: background-size 1.2s var(--ease); }
+  main .sec.olive-sec.reveal.on { background-size: 100% 100%; }
+  .olive-sec.reveal.on > * { transition-delay: calc(var(--i, 0) * 90ms + .8s); }
+  .olive-sec.reveal .orn line { transition-delay: 1.15s; }
+  .olive-sec.reveal .orn .d { transition-delay: 1s; }
+
+  /* Where supported, the fill follows the scroll instead of a timer; other browsers keep the timed fill above. */
+  @supports (animation-timeline: view()) {
+    main .sec.olive-sec.reveal { transition: none; animation: arch-fill linear both; animation-timeline: view(); animation-range: entry 0% entry 100%; }
+    .olive-sec.reveal.on > * { transition-delay: calc(var(--i, 0) * 90ms + .15s); }
+    .olive-sec.reveal .orn line { transition-delay: .5s; }
+    .olive-sec.reveal .orn .d { transition-delay: .35s; }
+  }
+
   .cd b.bump { animation: bump .5s var(--ease); }
-  .mini-env .ms svg { animation: breathe 3s ease-in-out infinite; }
+  .mini-env .ms img { animation: breathe 3s ease-in-out infinite; }
 
   /* Reply-by reminder: once revealed, a gold glow pulses around the pill, a light sweeps across it
      and the calendar gives a small ring, every few seconds. */
@@ -368,7 +427,7 @@ body.private { min-height: 100svh; display: grid; place-items: center; padding: 
   /* RSVP card subtitle: rises in after the card, the date's gold underline draws out from the centre,
      then the date glows softly every few seconds. */
   dialog[open] .sub { animation: rise-in .7s var(--ease) .15s both; }
-  dialog[open] .sub-date { animation: underline-in .8s var(--ease) .6s both, date-glow 3.2s ease-in-out 1.6s infinite; }
+  dialog[open] .sub-date { display: inline-block; transform-origin: 50% 70%; animation: underline-in .8s var(--ease) .6s both, date-glow 3.2s ease-in-out 1.6s infinite; }
 
   .reveal.on .reply-by { animation: reply-glow 3.2s ease-in-out 1.2s infinite; }
   .reveal.on .reply-by::after { animation: reply-sheen 4.8s ease-in-out 1.6s infinite; }
@@ -391,7 +450,10 @@ body.private { min-height: 100svh; display: grid; place-items: center; padding: 
   50% { border-color: rgba(198,166,107,.95); box-shadow: 0 0 14px 2px rgba(198,166,107,.35); }
 }
 @keyframes underline-in { from { background-size: 0 1.5px; } }
-@keyframes date-glow { 50% { text-shadow: 0 0 10px rgba(198,166,107,.65); } }
+@keyframes date-glow {
+  0%, 100% { transform: scale(1); text-shadow: 0 0 0 rgba(198,166,107,0); }
+  50% { transform: scale(1.09); text-shadow: 0 0 14px rgba(198,166,107,.9); }
+}
 @keyframes reply-sheen { 0% { left: -60%; } 35%, 100% { left: 130%; } }
 @keyframes reply-ring {
   0%, 30%, 100% { transform: rotate(0); }

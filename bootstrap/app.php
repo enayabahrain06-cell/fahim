@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Behind the Cloudflare tunnel: trust the local proxy hop for the real client IP and scheme.
+        $middleware->trustProxies(at: ['127.0.0.1', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16']);
         $middleware->append(SecurityHeaders::class);
         $middleware->alias(['no.admin' => EnsureNoAdmin::class]);
         $middleware->redirectGuestsTo(fn () => User::query()->exists() ? route('admin.login') : route('admin.setup'));

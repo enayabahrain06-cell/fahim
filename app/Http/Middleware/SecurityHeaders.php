@@ -17,7 +17,7 @@ class SecurityHeaders
         $response->headers->set('Referrer-Policy', 'same-origin');
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), interest-cohort=()');
+        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
         $response->headers->set('Content-Security-Policy', $this->policy());
 
         return $response;
@@ -28,6 +28,10 @@ class SecurityHeaders
         $script = ["'self'"];
         $style = ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'];
         $connect = ["'self'"];
+
+        // Cloudflare injects its analytics beacon when the site is proxied.
+        $script[] = 'https://static.cloudflareinsights.com';
+        $connect[] = 'https://cloudflareinsights.com';
 
         // While `npm run dev` is running, assets come from the Vite dev server.
         if (Vite::isRunningHot()) {

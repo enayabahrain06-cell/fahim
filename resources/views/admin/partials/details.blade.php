@@ -17,6 +17,13 @@
     <label class="wide">Join line<input name="join_line" maxlength="120" value="{{ $d['join_line'] }}"></label>
     <label class="wide">Note on the invitation (optional)<input name="note" placeholder="e.g. Ladies only" maxlength="120" value="{{ $d['note'] }}"></label>
 
+    <fieldset class="wide share">
+      <legend>WhatsApp message <small>(leave empty for the default; you can use {couple}, {date}, {day}, {venue})</small></legend>
+      <label class="wide">Card title<input name="share_title" maxlength="80" placeholder="{{ '{couple}' }} · Wedding Invitation" value="{{ $d['share_title'] }}"></label>
+      <label class="wide">Card description<textarea name="share_description" rows="3" maxlength="200" placeholder="Optional. Leave empty for no description.">{{ $d['share_description'] }}</textarea></label>
+      <label class="wide">Message text above the link<textarea name="share_message" rows="3" maxlength="500" placeholder="With joy, we invite you to the wedding of {{ '{couple}' }}…">{{ $d['share_message'] }}</textarea></label>
+    </fieldset>
+
     <fieldset class="wide schedule">
       <legend>Schedule of events <small>(optional, up to 8)</small></legend>
       <div id="scheduleRows"></div>

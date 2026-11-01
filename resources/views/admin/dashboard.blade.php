@@ -27,7 +27,7 @@
 <main class="screens">
   <section class="screen" id="screen-overview" aria-label="Overview">
     <nav class="shortcuts" aria-label="Shortcuts">
-      <a class="sc primary" href="{{ route('admin.preview') }}" target="_blank" rel="noopener">
+      <a class="sc primary" href="{{ route('admin.preview') }}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
         Preview invitation
       </a>
@@ -37,6 +37,7 @@
       </a>
     </nav>
     @include('admin.partials.summary')
+    @include('admin.partials.quick-send')
     <footer class="foot">
       <p id="updated">Loading…</p>
       <div class="foot-links">
@@ -54,12 +55,9 @@
     @include('admin.partials.guest-list')
   </section>
 
-  <section class="screen" id="screen-add" aria-label="Add guests" hidden>
-    @include('admin.partials.add-guests')
-  </section>
-
   <section class="screen" id="screen-invitation" aria-label="Invitation" hidden>
     @include('admin.partials.photos')
+    @include('admin.partials.music')
     @include('admin.partials.details')
   </section>
 </main>
@@ -72,10 +70,6 @@
   <a href="#guests" data-tab="guests">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.8-3.2 3-5 5.5-5s4.7 1.8 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M16.5 14c2 .2 3.4 1.6 4 4"/></svg>
     <span>Guests</span><b class="badge" id="badge" hidden></b>
-  </a>
-  <a href="#add" data-tab="add">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>
-    <span>Add</span>
   </a>
   <a href="#invitation" data-tab="invitation">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="4" y="3.5" width="16" height="17" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>

@@ -39,7 +39,7 @@ it('updates the guest page and derives the date strings in +03:00', function () 
         ->assertSee('Garden Hall')->assertSee('Hall No. 2')
         ->assertSee('https://maps.app.goo.gl/example')
         ->assertSee('Ladies only')
-        ->assertSee('Please reply before <b>25 November</b>', false)
+        ->assertSee('Kindly share your response by <b>25 November</b>', false)
         ->assertSee('Schedule of events')
         ->assertDontSee('Adhari')
         ->assertDontSee('id="music"', false)
@@ -61,7 +61,7 @@ it('uses the wedding defaults before anything is saved', function () {
         ->assertSee('Thursday, 19 November 2026, 7:30 PM onwards')
         ->assertSee('Adhari New Seasons')
         ->assertSee('Hamza and Rahiyanath')
-        ->assertSee('kindly confirm your attendance.')->assertDontSee('Please reply before')
+        ->assertSee('Kindly share your response by')
         ->assertDontSee('Schedule of events');
 });
 

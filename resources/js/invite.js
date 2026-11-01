@@ -1,4 +1,4 @@
-import { grainURI, sealSVG, garland, sprig, usePalette } from './greenery.js';
+import { grainURI, garland, sprig, usePalette } from './greenery.js';
 import { Music } from './music.js';
 
 import.meta.glob(['../images/**'], { eager: true }); // lets Blade use Vite::asset() for the bundled artwork
@@ -11,14 +11,27 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 document.querySelectorAll('.mini-env .grain').forEach(p => { p.style.backgroundImage = grainURI(.22); });
 document.querySelectorAll('.hero .grain').forEach(p => { p.style.backgroundImage = grainURI(.06); });
 const palette = usePalette();
-$('rsvpSeal').appendChild(sealSVG('RSVP', { ...palette.rsvp, size: 15, dy: 5 }));
 $('garland').innerHTML = garland();
 $('sprigL').innerHTML = sprig(3);
 $('sprigR').innerHTML = sprig(11);
 
 /* ---------- Gold dust ---------- */
 if (!reduceMotion) {
-  const hero = document.querySelector('.hero');
+  // One fixed layer over the page column, so the dust and petals drift past every page of the invitation.
+  const hero = document.createElement('div');
+  hero.className = 'fx';
+  hero.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(hero);
+  // Over the burgundy reply page the petals and dust fade right down, so they don't crowd the text and the envelope.
+  const calmSecs = document.querySelectorAll('#rsvpSec, .olive-tail');
+  if (calmSecs.length && 'IntersectionObserver' in window) {
+    const inView = new Set();
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => (e.isIntersecting ? inView.add(e.target) : inView.delete(e.target)));
+      hero.classList.toggle('calm', inView.size > 0);
+    }, { rootMargin: '-35% 0px -35% 0px' });
+    calmSecs.forEach(s => io.observe(s));
+  }
   for (let i = 0; i < 16; i++) {
     const s = document.createElement('span');
     s.className = 'spark';
@@ -90,11 +103,14 @@ const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="tru
 const musicBtn = $('music');
 function setMusic(on) {
   if (!musicBtn) return;
-  try { on ? Music.start() : Music.stop(); } catch (e) { on = false; }
+  try { on ? Music.start(CFG.musicUrl, CFG.musicStart, CFG.musicEnd) : Music.stop(); } catch (e) { on = false; }
   musicBtn.setAttribute('aria-pressed', String(on));
   musicBtn.innerHTML = on ? ICON_PAUSE : ICON_PLAY;
 }
 if (musicBtn) { setMusic(false); musicBtn.addEventListener('click', () => setMusic(!Music.playing)); }
+// Leaving the page (another app, a locked phone, a closed tab) must not leave the music playing; the button is a tap away on return.
+document.addEventListener('visibilitychange', () => { if (document.hidden && Music.playing) setMusic(false); });
+addEventListener('pagehide', () => { if (Music.playing) setMusic(false); });
 
 /* ---------- Gentle auto-scroll down to the RSVP ---------- */
 function autoScroll() {
@@ -174,19 +190,32 @@ $('minus').addEventListener('click', () => { if (count > 1) { count--; renderCou
 renderCount();
 showPrevious();
 
-$('openRsvp').addEventListener('click', () => {
+const env = $('openRsvp');
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (!calm) {
+  env.addEventListener('pointermove', e => {
+    const r = env.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+    env.classList.add('tilting');
+    env.style.setProperty('--ry', (x * 14) + 'deg'); env.style.setProperty('--rx', (-y * 14) + 'deg');
+    env.style.setProperty('--mx', (x + .5) * 100 + '%'); env.style.setProperty('--my', (y + .5) * 100 + '%');
+    env.style.setProperty('--px', (x * 10) + 'px'); env.style.setProperty('--py', (y * 8) + 'px');
+  });
+  env.addEventListener('pointerleave', () => {
+    env.classList.remove('tilting'); ['--rx', '--ry', '--px', '--py'].forEach(v => env.style.removeProperty(v));
+  });
+}
+
+function openCard() {
   $('done').hidden = true; form.hidden = false;
   sendBtn.disabled = false; sendBtn.textContent = 'Send RSVP'; err.textContent = '';
   showPrevious();
   dlg.showModal();
-});
+}
+env.addEventListener('click', openCard);
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
-  if (CFG.preview || !INVITEE || !CFG.rsvpUrl) {
-    err.textContent = 'This is your preview. Guests reply from their personal links.';
-    return;
-  }
   if (attending === null) { err.textContent = 'Choose whether you’ll attend.'; return; }
   const name = nameInput.value.trim();
   if (attending && !name) { err.textContent = 'Please enter your name.'; nameInput.focus(); return; }
@@ -200,9 +229,9 @@ form.addEventListener('submit', async e => {
     });
     const out = await res.json().catch(() => ({}));
     if (!res.ok || !out.ok) throw new Error(out.error || 'failed');
-    Object.assign(INVITEE, { status: attending ? 'yes' : 'no', guests: attending ? count : 0, guest_names: attending ? [name] : [] });
+    if (INVITEE) Object.assign(INVITEE, { status: attending ? 'yes' : 'no', guests: attending ? count : 0, guest_names: attending ? [name] : [] });
     form.hidden = true;
-    const first = (attending ? name : INVITEE.name).split(' ')[0];
+    const first = (name || INVITEE?.name || '').split(' ')[0];
     $('done').textContent = attending ? `Thank you, ${first}! We can’t wait to celebrate with you.` : 'Thank you for letting us know. You’ll be missed.';
     $('done').hidden = false;
   } catch (e2) {

@@ -1,11 +1,11 @@
 @php($at = \Carbon\CarbonImmutable::parse($d['starts_at']))
 <section class="sec reveal venue-sec">
-  <p class="ar-kicker" lang="ar" dir="rtl">المكان المبارك</p>
   <h2 class="kicker">The celebration venue</h2>
 
   <div class="venue-card">
-    <div class="venue-hero">
-      @if ($photos['venue'])
+    <div class="venue-hero{{ $hiddenPhotos['venue'] ? ' no-photo' : '' }}">
+      @if ($hiddenPhotos['venue'])
+      @elseif ($photos['venue'])
         <img src="{{ $photos['venue'] }}" alt="">
       @else
         <img src="{{ Vite::asset('resources/images/venue-default.jpg') }}" alt="" width="720" height="901">
@@ -40,13 +40,7 @@
           Directions
         </a>
         @endif
-        <a class="btn" href="{{ $googleCalendarUrl }}" target="_blank" rel="noopener noreferrer">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4M12 12.5v5M9.5 15h5"/></svg>
-          Save date
-        </a>
       </div>
-      <a class="ics-link" href="{{ $calendarUrl }}" download="wedding.ics">Apple / Outlook Calendar (.ics)</a>
-      <p class="venue-note">Calendar reminder begins at {{ $at->format('g:i A') }}. The celebration continues onwards.</p>
 
       @if ($mapEmbed)
       <div class="venue-map">

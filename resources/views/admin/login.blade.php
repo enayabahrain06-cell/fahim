@@ -11,8 +11,8 @@
     @csrf
     <p class="eyebrow">Wedding dashboard</p>
     <h1>Sign in</h1>
-    <label class="field">Email
-      <input name="email" type="email" value="{{ old('email') }}" autocomplete="username" required autofocus>
+    <label class="field">Username or email
+      <input name="email" type="text" value="{{ old('email') }}" autocomplete="username" autocapitalize="none" required autofocus>
     </label>
     <label class="field">Password
       <input name="password" type="password" autocomplete="current-password" required>

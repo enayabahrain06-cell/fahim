@@ -6,10 +6,27 @@
 const LEAF_TOKENS = ['--leaf-1', '--leaf-1', '--leaf-2', '--leaf-3', '--leaf-3', '--leaf-4', '--leaf-5'];
 const P = {};
 
+// The same values as invite.css. iOS Safari can run this module before the stylesheet has applied, and
+// getPropertyValue then returns '' (an empty fill paints solid black), so each token falls back to its colour.
+const FALLBACK = {
+  '--leaf-1': '#781D2B',
+  '--leaf-2': '#93414C',
+  '--leaf-3': '#B66C72',
+  '--leaf-4': '#D99A9C',
+  '--leaf-5': '#EBCFCC',
+  '--stem': '#781D2B',
+  '--flower': '#FFFDF8',
+  '--flower-eye': '#C6A66B',
+  '--rsvp-hi': '#B66C72',
+  '--rsvp-mid': '#781D2B',
+  '--rsvp-lo': '#4E111B',
+  '--rsvp-ink': '#FFFDF8'
+};
+
 /** Reads the artwork colours from the page's CSS custom properties. Call once before drawing. */
 export function usePalette(root = document.documentElement) {
   const css = getComputedStyle(root);
-  const v = name => css.getPropertyValue(name).trim();
+  const v = name => css.getPropertyValue(name).trim() || FALLBACK[name];
   P.leaves = LEAF_TOKENS.map(v);
   for (const k of ['stem', 'flower', 'flower-eye']) P[k] = v('--' + k);
   P.rsvp = { hi: v('--rsvp-hi'), mid: v('--rsvp-mid'), lo: v('--rsvp-lo'), ink: v('--rsvp-ink') };
@@ -106,7 +123,8 @@ function branch(r, c, { leaves = 8, len = 14, from = 0.1, berry = 0, width = 1 }
     o += leaf(r, x, y, a + side * (28 + r() * 18), len * (1 - t * 0.4) * (0.85 + r() * 0.3));
   }
   const [tx, ty, ta] = bez(c, 1);
-  return o + leaf(r, tx, ty, ta, len * 0.6);
+  o += leaf(r, tx, ty, ta, len * 0.6);
+  return o;
 }
 
 /** Top of the hero: an airy swag with a spray hanging from each corner. */

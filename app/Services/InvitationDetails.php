@@ -21,10 +21,13 @@ class InvitationDetails
         'venue' => 'Adhari New Seasons',
         'venue_address' => 'Hall No. 1',
         'map_link' => 'https://www.google.com/maps/search/?api=1&query=Adhari%20New%20Seasons%20Bahrain',
-        'rsvp_by' => '',
+        'rsvp_by' => '15 November',
         'intro' => 'In a moment filled with joy and gratitude, we invite you to share in our happiness as we begin our new journey together.',
         'join_line' => 'Join us as we celebrate our nikah',
         'note' => '',
+        'share_title' => '',
+        'share_description' => '',
+        'share_message' => '',
         'schedule' => [],
         'music' => true,
     ];
@@ -68,7 +71,18 @@ class InvitationDetails
     {
         $at = $this->startsAt($d);
 
+        $fill = fn (string $text) => strtr($text, [
+            '{couple}' => $d['groom'].' & '.$d['bride'],
+            '{date}' => $at->format('j F Y'),
+            '{day}' => $at->format('l'),
+            '{venue}' => $d['venue'],
+        ]);
+        $pick = fn (string $key, string $default) => $fill(trim((string) ($d[$key] ?? '')) !== '' ? trim($d[$key]) : $default);
+
         return array_merge($d, [
+            'share_title_text' => $pick('share_title', '{couple} · Wedding Invitation'),
+            'share_description_text' => $pick('share_description', ''),
+            'share_message_text' => $pick('share_message', "With joy, we invite you to the wedding of {couple}.\nPlease open your personal invitation and confirm your attendance:"),
             'day_name' => $at->format('l'),
             'date_long' => $at->format('j F Y'),
             'short_date' => $at->format('d . m . y'),
@@ -121,6 +135,20 @@ class InvitationDetails
         return $place === '' ? null : 'https://www.google.com/maps?q='.rawurlencode($place).'&z=15&output=embed';
     }
 
+    /** @return array{url: string, name: string, uploaded: bool, start: float, end: ?float}|null the music to play (the uploaded track, else public/audio/music.mp3 if it exists) with the part chosen to play */
+    public function musicTrack(): ?array
+    {
+        $file = $this->settings->get('music_file');
+        $crop = (array) $this->settings->get('music_crop', []);
+        $part = ['start' => (float) ($crop['start'] ?? 0), 'end' => isset($crop['end']) ? (float) $crop['end'] : null];
+
+        if (is_array($file) && ! empty($file['path'])) {
+            return ['url' => Storage::disk('public')->url($file['path']).'?v='.($file['v'] ?? 0), 'name' => (string) ($file['name'] ?? 'Your music'), 'uploaded' => true] + $part;
+        }
+
+        return file_exists(public_path('audio/music.mp3')) ? ['url' => '/audio/music.mp3', 'name' => 'Built-in music', 'uploaded' => false] + $part : null;
+    }
+
     public function musicEnabled(): bool
     {
         return ($this->settings->get('music')['state'] ?? 'on') === 'on';
@@ -136,6 +164,18 @@ class InvitationDetails
         }
 
         return Storage::disk('public')->url($photo['path']).'?v='.($photo['v'] ?? 0);
+    }
+
+    /** True when the couple chose to leave this slot's photo (and the built-in artwork) off the invitation. */
+    public function photoHidden(string $slot): bool
+    {
+        return (bool) $this->settings->get("photo_{$slot}_hidden", false);
+    }
+
+    /** @return array<string, bool> */
+    public function hiddenPhotos(): array
+    {
+        return collect(config('wedding.photo_slots'))->mapWithKeys(fn ($s) => [$s => $this->photoHidden($s)])->all();
     }
 
     /** @return array<string, string|null> */

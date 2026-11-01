@@ -1,11 +1,11 @@
 {
   "resources/css/admin.css": {
-    "file": "assets/admin-D4qVSBwe.css",
+    "file": "assets/admin-4o5jvAQE.css",
     "src": "resources/css/admin.css",
     "isEntry": true
   },
   "resources/css/invite.css": {
-    "file": "assets/invite-DziV0fBI.css",
+    "file": "assets/invite-BzrvBBBF.css",
     "src": "resources/css/invite.css",
     "isEntry": true
   },
@@ -13,9 +13,25 @@
     "file": "assets/couple-default-BIChNA3i.jpg",
     "src": "resources/images/couple-default.jpg"
   },
+  "resources/images/envelope-mini.jpg": {
+    "file": "assets/envelope-mini-Dq4bWTlH.jpg",
+    "src": "resources/images/envelope-mini.jpg"
+  },
+  "resources/images/envelope-ribbon.png": {
+    "file": "assets/envelope-ribbon-D6_T80fT.png",
+    "src": "resources/images/envelope-ribbon.png"
+  },
   "resources/images/envelope.jpg": {
-    "file": "assets/envelope-CRoUjO_X.jpg",
+    "file": "assets/envelope-C_CUGXdP.jpg",
     "src": "resources/images/envelope.jpg"
+  },
+  "resources/images/seal-rsvp-legacy.png": {
+    "file": "assets/seal-rsvp-legacy-BHq7h5DC.png",
+    "src": "resources/images/seal-rsvp-legacy.png"
+  },
+  "resources/images/seal-rsvp.png": {
+    "file": "assets/seal-rsvp-g_VYCbdW.png",
+    "src": "resources/images/seal-rsvp.png"
   },
   "resources/images/seal.png": {
     "file": "assets/seal-CMb-cp_3.png",
@@ -26,7 +42,7 @@
     "src": "resources/images/venue-default.jpg"
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-sLpMhkWZ.js",
+    "file": "assets/admin-L2q8awvU.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true
@@ -38,7 +54,7 @@
     "isEntry": true
   },
   "resources/js/invite.js": {
-    "file": "assets/invite-BfdKWEkk.js",
+    "file": "assets/invite-DWJ6eo0_.js",
     "name": "invite",
     "src": "resources/js/invite.js",
     "isEntry": true
